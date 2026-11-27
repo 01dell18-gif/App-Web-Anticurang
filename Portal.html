@@ -34,28 +34,28 @@
   <main class="flex-1 w-full max-w-6xl mx-auto p-4 md:p-6 pb-16">
       <!-- Statistik Ringkas -->
       <section class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex items-center justify-between">
+        <div onclick="setPortalStatusFilter('all')" title="Klik untuk lihat Semua Soal" class="bg-white border border-slate-200 hover:border-brand-300 rounded-xl p-4 shadow-xs flex items-center justify-between cursor-pointer transition-all">
           <div>
             <div class="text-xs font-semibold text-slate-500">Total Soal</div>
             <div id="stat-total" class="text-2xl font-extrabold text-slate-900 mt-0.5">0</div>
           </div>
           <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center"><i class="fa-solid fa-book"></i></div>
         </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex items-center justify-between">
+        <div onclick="setPortalStatusFilter('active')" title="Klik untuk lihat Soal Berlangsung" class="bg-white border border-slate-200 hover:border-emerald-300 rounded-xl p-4 shadow-xs flex items-center justify-between cursor-pointer transition-all">
           <div>
             <div class="text-xs font-semibold text-slate-500">Berlangsung</div>
             <div id="stat-active" class="text-2xl font-extrabold text-emerald-600 mt-0.5">0</div>
           </div>
           <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-circle-play"></i></div>
         </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex items-center justify-between">
+        <div onclick="setPortalStatusFilter('upcoming')" title="Klik untuk lihat Soal Akan Datang" class="bg-white border border-slate-200 hover:border-amber-300 rounded-xl p-4 shadow-xs flex items-center justify-between cursor-pointer transition-all">
           <div>
             <div class="text-xs font-semibold text-slate-500">Akan Datang</div>
             <div id="stat-upcoming" class="text-2xl font-extrabold text-amber-600 mt-0.5">0</div>
           </div>
           <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-clock"></i></div>
         </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex items-center justify-between">
+        <div onclick="setPortalStatusFilter('ended')" title="Klik untuk lihat Soal Sudah Selesai" class="bg-white border border-slate-200 hover:border-slate-400 rounded-xl p-4 shadow-xs flex items-center justify-between cursor-pointer transition-all">
           <div>
             <div class="text-xs font-semibold text-slate-500">Sudah Selesai</div>
             <div id="stat-ended" class="text-2xl font-extrabold text-slate-600 mt-0.5">0</div>
@@ -64,7 +64,7 @@
         </div>
       </section>
 
-      <!-- Toolbar Filter dengan Searchable Combobox Datalist -->
+      <!-- Toolbar Filter dengan Dropdown Hari & Kelas -->
       <section class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-xs mb-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 w-full">
           <div class="relative w-full sm:w-auto sm:min-w-[200px] sm:flex-1 lg:max-w-xs">
@@ -73,23 +73,17 @@
               class="w-full text-xs sm:text-sm pl-8 pr-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none">
           </div>
 
-          <select id="portal-hari-filter" onchange="renderPortalExams()" class="w-full sm:w-auto text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none">
+          <select id="portal-hari-filter" onchange="renderPortalExams()" class="w-full sm:w-auto text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none cursor-pointer">
             <option value="">Semua Hari / Tanggal</option>
           </select>
 
-          <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[165px]">
-            <input id="portal-kelas-filter" type="text" list="list-portal-kelas" autocomplete="off"
-              placeholder="-- Semua Kelas --" onfocus="this.select()" oninput="renderPortalExams()"
-              class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none">
-            <datalist id="list-portal-kelas"></datalist>
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-              <i class="fa-solid fa-chevron-down text-[10px]"></i>
-            </div>
-          </div>
+          <select id="portal-kelas-filter" onchange="renderPortalExams()" class="w-full sm:w-auto text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none cursor-pointer min-w-[150px]">
+            <option value="">-- Semua Kelas --</option>
+          </select>
 
           <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar pb-0.5 sm:pb-0">
-            <button type="button" data-status="all" onclick="setPortalStatusFilter('all')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-brand-600 text-white">Semua</button>
-            <button type="button" data-status="active" onclick="setPortalStatusFilter('active')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Berlangsung</button>
+            <button type="button" data-status="all" onclick="setPortalStatusFilter('all')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Semua</button>
+            <button type="button" data-status="active" onclick="setPortalStatusFilter('active')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-brand-600 text-white">Berlangsung</button>
             <button type="button" data-status="upcoming" onclick="setPortalStatusFilter('upcoming')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Akan Datang</button>
             <button type="button" data-status="ended" onclick="setPortalStatusFilter('ended')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Selesai</button>
           </div>
@@ -298,7 +292,7 @@
       exams: [],
       students: [],
       activeClassStudents: [],
-      statusFilter: (APP_PARAMS && APP_PARAMS.filter === 'active') ? 'active' : 'all',
+      statusFilter: (APP_PARAMS && APP_PARAMS.filter) ? APP_PARAMS.filter : 'active',
       pendingRowIndex: null
     };
 
@@ -371,7 +365,23 @@
     }
 
     function populatePortalFilters(exams) {
-      populateSelect('portal-kelas-filter', exams.map(function (e) { return e.kelas; }));
+      const classSet = {};
+      const classList = [];
+      (exams || []).forEach(function (e) {
+        const k = String(e.kelas || '').trim();
+        if (k && !classSet[k]) {
+          classSet[k] = true;
+          classList.push(k);
+        }
+      });
+      (portalState.students || []).forEach(function (s) {
+        const k = String(s.kelas || '').trim();
+        if (k && !classSet[k]) {
+          classSet[k] = true;
+          classList.push(k);
+        }
+      });
+      populateSelect('portal-kelas-filter', classList, '-- Semua Kelas --');
 
       const hariSelect = document.getElementById('portal-hari-filter');
       const prev = hariSelect.value;
@@ -409,7 +419,7 @@
       document.querySelectorAll('.portal-pill').forEach(function (btn) {
         const isActive = btn.getAttribute('data-status') === portalState.statusFilter;
         btn.className = 'portal-pill px-3 py-1.5 rounded-full text-xs font-bold transition ' +
-          (isActive ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200');
+          (isActive ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200');
       });
     }
 
@@ -435,6 +445,17 @@
       if (!filtered.length) {
         groupsEl.innerHTML = '';
         emptyEl.classList.remove('hidden');
+        const emptyTitle = document.getElementById('portal-empty-title');
+        const emptyDesc = document.getElementById('portal-empty-desc');
+        if (emptyTitle && emptyDesc) {
+          if (portalState.statusFilter === 'active') {
+            emptyTitle.textContent = 'Tidak Ada Soal yang Sedang Berlangsung';
+            emptyDesc.innerHTML = 'Saat ini belum ada jadwal soal yang sedang berlangsung. Silakan klik tab <b>Akan Datang</b> atau <b>Semua</b> untuk melihat jadwal lainnya.';
+          } else {
+            emptyTitle.textContent = 'Belum Ada Jadwal Ujian';
+            emptyDesc.textContent = 'Belum ada jadwal soal yang tersedia atau sesuai dengan filter yang dipilih.';
+          }
+        }
         return;
       }
 
