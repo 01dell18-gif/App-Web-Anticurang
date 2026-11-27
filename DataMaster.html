@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title><?= initialAppTitle ?> - Data Mapel & Kelas</title>
+  <title><?= initialAppTitle ?> - Data Mapel &amp; Kelas</title>
   <?!= include('StyleCSS'); ?>
 </head>
 <body class="bg-slate-50 text-slate-800 flex h-dvh-screen overflow-hidden">
@@ -18,7 +18,7 @@
           <i class="fa-solid fa-layer-group"></i>
         </div>
         <h3 class="text-lg font-extrabold text-slate-900">Akses Khusus Administrator</h3>
-        <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk menambah atau menghapus data pada sheet DB_Mapel dan DB_Kelas.</p>
+        <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk menambah, mengubah, atau menghapus data Mata Pelajaran dan Kelas.</p>
         <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
           <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
         </button>
@@ -29,11 +29,11 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 class="text-sm font-extrabold text-slate-900">Master Data Pilihan Form Tambah Soal</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Data di sheet <code>DB_Mapel</code> &amp; <code>DB_Kelas</code> otomatis mengisi dropdown pilihan pada menu Kelola Link Soal.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Daftar Mata Pelajaran dan Kelas otomatis mengisi pilihan dropdown pada menu Kelola Link Soal.</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <a id="dm-sheet-link" href="#" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
-              <i class="fa-solid fa-table mr-1"></i> Buka Google Sheet
+              <i class="fa-solid fa-table mr-1"></i> Google Sheet
             </a>
             <button type="button" onclick="navigateTo('kelola-soal')" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
               <i class="fa-solid fa-link mr-1"></i> Ke Kelola Link Soal
@@ -42,22 +42,19 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <!-- PANEL 1: DB_Mapel -->
+          <!-- PANEL 1: Data Mata Pelajaran -->
           <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden flex flex-col">
             <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-2 bg-slate-50/70">
-              <div>
-                <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                  <i class="fa-solid fa-book-open text-brand-600"></i>
-                  <span>Data Mata Pelajaran (DB_Mapel)</span>
-                </h4>
-                <p class="text-[11px] text-slate-500 mt-0.5">Kolom sheet: <code>No, Nama Mapel</code></p>
-              </div>
+              <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-book-open text-brand-600"></i>
+                <span>Data Mata Pelajaran</span>
+              </h4>
               <span id="count-mapel" class="px-2.5 py-1 rounded-full text-xs font-bold bg-brand-50 text-brand-700">0 Mapel</span>
             </div>
 
             <form onsubmit="submitAddMaster(event, 'mapel')" class="p-4 border-b border-slate-200 bg-slate-50/40 space-y-2.5">
               <div class="flex flex-col sm:flex-row gap-2">
-                <input id="add-mapel-no" type="text" placeholder="No (Otomatis)"
+                <input id="add-mapel-no" type="text" placeholder="No (Auto)"
                   class="w-full sm:w-28 text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none">
                 <input id="add-mapel-nama" type="text" required placeholder="Nama Mapel (misal: Matematika)"
                   class="flex-1 text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
@@ -78,32 +75,29 @@
                   <tr>
                     <th class="px-4 py-2.5 font-bold whitespace-nowrap w-16">No</th>
                     <th class="px-4 py-2.5 font-bold whitespace-nowrap">Nama Mapel</th>
-                    <th class="px-4 py-2.5 font-bold whitespace-nowrap text-right w-24">Aksi</th>
+                    <th class="px-4 py-2.5 font-bold whitespace-nowrap text-right w-36">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="tbody-mapel" class="divide-y divide-slate-100">
-                  <tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Memuat data DB_Mapel...</td></tr>
+                  <tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Memuat data mata pelajaran...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- PANEL 2: DB_Kelas -->
+          <!-- PANEL 2: Data Kelas -->
           <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden flex flex-col">
             <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-2 bg-slate-50/70">
-              <div>
-                <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                  <i class="fa-solid fa-users-rectangle text-emerald-600"></i>
-                  <span>Data Kelas (DB_Kelas)</span>
-                </h4>
-                <p class="text-[11px] text-slate-500 mt-0.5">Kolom sheet: <code>No, Kelas</code></p>
-              </div>
+              <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-users-rectangle text-emerald-600"></i>
+                <span>Data Kelas</span>
+              </h4>
               <span id="count-kelas" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">0 Kelas</span>
             </div>
 
             <form onsubmit="submitAddMaster(event, 'kelas')" class="p-4 border-b border-slate-200 bg-slate-50/40 space-y-2.5">
               <div class="flex flex-col sm:flex-row gap-2">
-                <input id="add-kelas-no" type="text" placeholder="No (Otomatis)"
+                <input id="add-kelas-no" type="text" placeholder="No (Auto)"
                   class="w-full sm:w-28 text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none">
                 <input id="add-kelas-nama" type="text" required placeholder="Nama Kelas (misal: XI DKV)"
                   class="flex-1 text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
@@ -124,11 +118,11 @@
                   <tr>
                     <th class="px-4 py-2.5 font-bold whitespace-nowrap w-16">No</th>
                     <th class="px-4 py-2.5 font-bold whitespace-nowrap">Kelas</th>
-                    <th class="px-4 py-2.5 font-bold whitespace-nowrap text-right w-24">Aksi</th>
+                    <th class="px-4 py-2.5 font-bold whitespace-nowrap text-right w-36">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="tbody-kelas" class="divide-y divide-slate-100">
-                  <tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Memuat data DB_Kelas...</td></tr>
+                  <tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Memuat data kelas...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -136,6 +130,36 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- MODAL: Edit Data Mapel / Kelas -->
+  <div id="modal-edit-master" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl max-w-md w-full shadow-2xl overflow-y-auto max-h-[90dvh]">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 id="edit-master-title" class="font-extrabold text-slate-900">Edit Data</h3>
+        <button type="button" onclick="closeEditMasterModal()" class="text-slate-400 hover:text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="submitEditMaster(event)">
+        <div class="p-5 space-y-3.5">
+          <input id="edit-master-kind" type="hidden">
+          <input id="edit-master-row-index" type="hidden">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">No</label>
+            <input id="edit-master-no" type="text" placeholder="Nomor urut"
+              class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label id="edit-master-val-label" class="block text-xs font-bold text-slate-600 mb-1">Nama</label>
+            <input id="edit-master-val" type="text" required placeholder="Masukkan nama..."
+              class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+        </div>
+        <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="closeEditMasterModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white">Batal</button>
+          <button id="btn-save-edit-master" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <?!= include('AppJS'); ?>
@@ -150,7 +174,7 @@
         document.getElementById('dm-content').classList.add('hidden');
         if (auth === 'forbidden_role') {
           document.querySelector('#dm-auth-guard h3').textContent = 'Akses Khusus Administrator';
-          document.querySelector('#dm-auth-guard p').textContent = 'Hanya Admin yang dapat menambah atau menghapus data DB_Mapel dan DB_Kelas.';
+          document.querySelector('#dm-auth-guard p').textContent = 'Hanya Admin yang dapat mengelola data Mata Pelajaran dan Kelas.';
         }
         try {
           const pub = await callServer('getPublicPortalData', false);
@@ -197,12 +221,13 @@
           '<tr class="hover:bg-slate-50/80">' +
             '<td class="px-4 py-2.5 font-mono font-bold text-slate-600">' + escapeHtml(m.no) + '</td>' +
             '<td class="px-4 py-2.5 font-semibold text-slate-900">' + escapeHtml(m.namaMapel) + '</td>' +
-            '<td class="px-4 py-2.5 text-right">' +
+            '<td class="px-4 py-2.5 text-right whitespace-nowrap space-x-1.5">' +
+              '<button type="button" onclick="openEditMasterModal(\'mapel\', ' + m.rowIndex + ')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">Edit</button>' +
               '<button type="button" onclick="confirmDeleteMaster(\'mapel\', ' + m.rowIndex + ', \'' + escapeJsAttr(m.namaMapel) + '\')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700">Hapus</button>' +
             '</td>' +
           '</tr>'
         );
-      }).join('') : '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Belum ada data di sheet DB_Mapel.</td></tr>';
+      }).join('') : '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Belum ada data mata pelajaran.</td></tr>';
 
       const filteredKelas = dmState.kelas.filter(function (k) {
         return !qKelas || (k.kelas + ' ' + k.no).toLowerCase().indexOf(qKelas) !== -1;
@@ -213,12 +238,13 @@
           '<tr class="hover:bg-slate-50/80">' +
             '<td class="px-4 py-2.5 font-mono font-bold text-slate-600">' + escapeHtml(k.no) + '</td>' +
             '<td class="px-4 py-2.5 font-semibold text-slate-900"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">' + escapeHtml(k.kelas) + '</span></td>' +
-            '<td class="px-4 py-2.5 text-right">' +
+            '<td class="px-4 py-2.5 text-right whitespace-nowrap space-x-1.5">' +
+              '<button type="button" onclick="openEditMasterModal(\'kelas\', ' + k.rowIndex + ')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">Edit</button>' +
               '<button type="button" onclick="confirmDeleteMaster(\'kelas\', ' + k.rowIndex + ', \'' + escapeJsAttr(k.kelas) + '\')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700">Hapus</button>' +
             '</td>' +
           '</tr>'
         );
-      }).join('') : '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Belum ada data di sheet DB_Kelas.</td></tr>';
+      }).join('') : '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Belum ada data kelas.</td></tr>';
     }
 
     async function submitAddMaster(e, kind) {
@@ -255,11 +281,65 @@
       }
     }
 
+    function openEditMasterModal(kind, rowIndex) {
+      const list = kind === 'mapel' ? dmState.mapel : dmState.kelas;
+      const item = list.find(function (x) { return x.rowIndex === rowIndex; });
+      if (!item) return;
+
+      document.getElementById('edit-master-title').textContent = kind === 'mapel' ? 'Edit Mata Pelajaran' : 'Edit Data Kelas';
+      document.getElementById('edit-master-val-label').textContent = kind === 'mapel' ? 'Nama Mata Pelajaran' : 'Nama Kelas';
+      document.getElementById('edit-master-kind').value = kind;
+      document.getElementById('edit-master-row-index').value = String(rowIndex);
+      document.getElementById('edit-master-no').value = item.no || '';
+      document.getElementById('edit-master-val').value = (kind === 'mapel' ? item.namaMapel : item.kelas) || '';
+      document.getElementById('modal-edit-master').classList.remove('hidden');
+      setTimeout(function () { document.getElementById('edit-master-val').focus(); }, 50);
+    }
+
+    function closeEditMasterModal() {
+      document.getElementById('modal-edit-master').classList.add('hidden');
+    }
+
+    async function submitEditMaster(e) {
+      e.preventDefault();
+      const kind = document.getElementById('edit-master-kind').value;
+      const rowIndex = Number(document.getElementById('edit-master-row-index').value);
+      const newNo = document.getElementById('edit-master-no').value.trim();
+      const newVal = document.getElementById('edit-master-val').value.trim();
+      if (!newVal) return;
+
+      const btn = document.getElementById('btn-save-edit-master');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+      try {
+        const res = await callServer('updateMasterRecord', globalState.adminToken, kind, {
+          rowIndex: rowIndex,
+          no: newNo,
+          value: newVal
+        });
+        if (!res || !res.ok) {
+          if (res && res.authError) { clearAdminSessionStorage(); updateAuthUI(); window.onPageReady(); return; }
+          showToast((res && res.message) || 'Gagal memperbarui data.', 'error');
+          return;
+        }
+        if (kind === 'mapel') dmState.mapel = res.items || [];
+        else dmState.kelas = res.items || [];
+        closeEditMasterModal();
+        renderMasterTables();
+        showToast(res.message, 'success');
+      } catch (err) {
+        showToast('Error: ' + (err.message || err), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Perubahan';
+      }
+    }
+
     async function confirmDeleteMaster(kind, rowIndex, label) {
-      const sheetName = kind === 'mapel' ? 'DB_Mapel' : 'DB_Kelas';
+      const groupName = kind === 'mapel' ? 'Mata Pelajaran' : 'Data Kelas';
       const ask = await Swal.fire({
         title: 'Hapus Data?',
-        text: 'Hapus "' + label + '" dari sheet ' + sheetName + '?',
+        text: 'Hapus "' + label + '" dari daftar ' + groupName + '?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc2626',

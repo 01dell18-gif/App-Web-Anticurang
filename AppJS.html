@@ -209,7 +209,7 @@
 
     const result = await Swal.fire({
       title: 'Masuk Dashboard',
-      html: hintHtml + '<p class="text-xs text-slate-500 mb-2">Masukkan <b>PIN Admin</b> (akses penuh) atau <b>PIN Pengawas</b> (dari Sheet <code>Pengaturan</code>) untuk monitoring ujian.</p>',
+      html: hintHtml + '<p class="text-xs text-slate-500 mb-2">Masukkan <b>PIN Admin</b> (akses penuh) atau <b>PIN Pengawas</b> untuk monitoring ujian.</p>',
       input: 'password',
       inputPlaceholder: 'Masukkan PIN Admin atau PIN Pengawas...',
       inputAttributes: { autocapitalize: 'off', autocorrect: 'off' },
@@ -307,7 +307,7 @@
       } else if (typeof window.onPageReady === 'function') {
         await window.onPageReady(true);
       }
-      showToast('Data disinkronkan dari Google Spreadsheet.', 'success');
+      showToast('Data berhasil disinkronkan.', 'success');
     } catch (err) {
       showToast('Gagal sinkronisasi: ' + (err.message || err), 'error');
     } finally {

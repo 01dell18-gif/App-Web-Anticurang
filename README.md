@@ -13,9 +13,9 @@ Aplikasi serverless berbasis **Google Apps Script**, **Google Sheets Database**,
 
 ## URL & Database (2 Link Terpisah)
 
-- **Spreadsheet**: `1xZTTYRaCQQqjSI40XX9lFpz7lRIDxoAkpgE5TW72rZA` (`DB_Anticurang` kolom A–H termasuk `Durasi (Menit)`, `DB_Mapel` kolom `No, Nama Mapel`, `DB_Kelas` kolom `No, Kelas`, `Pengaturan`, `Log_Monitoring`)
-- **Master Data Dropdown (`DB_Mapel` & `DB_Kelas`)**: Dikelola melalui menu admin **Data Mapel & Kelas** (`?page=data-master`) dan otomatis mengisi dropdown `<select>` pada form **Tambah/Edit Link Google Form**, sementara kolom **Kelas** peserta di Web Publik terisi otomatis sesuai kelas soal di `DB_Anticurang`.
-- **Jendela Buka vs Durasi Soal (`DB_Anticurang`)**: Kolom `Waktu Mulai` & `Waktu Selesai` mengatur kapan soal dapat dibuka dan batas terakhir dibukanya; Kolom **H** (`Durasi (Menit)`, cukup isi angka menit misal `30`) menentukan lama pengerjaan penuh siswa setelah membuka soal (tetap penuh meski melewati `Waktu Selesai`).
+- **Spreadsheet & Link Deploy Dinamis (Tanpa Edit Kode)**: `getSpreadsheet_()` memprioritaskan Spreadsheet kustom dari menu *Pengaturan Sistem*, lalu otomatis mendeteksi *Active Spreadsheet* bila file diduplikasi (*Make a Copy*), dan cadangan `SPREADSHEET_ID`. `getAppUrl()` otomatis membaca `ScriptApp.getService().getUrl()` (deployment aktif) dengan fallback `FIXED_DEPLOY_URL`.
+- **Menu Data Mapel & Kelas (`?page=data-master`)**: Mendukung Tambah, **Edit** (`No` & nama), dan Hapus data untuk dropdown `<select>` di menu *Kelola Link Soal*.
+- **Jendela Buka vs Durasi Soal**: `Waktu Mulai` & `Waktu Selesai` mengatur kapan soal dapat dibuka dan batas terakhir dibukanya; Kolom **H** pada sheet soal menentukan durasi penuh pengerjaan per siswa dalam menit (Opsi B).
 - **Project Apps Script**: `10om5OlL4AEtNkp5O5OHu9-5v8z38eyhhxWIytGeAmakklYii7-MYFT-g`
 - **Link Web Publik (Khusus Siswa)**: `https://script.google.com/macros/s/AKfycbxw20eF7UAvQv4zJJlMds32mUjU42KInSNiLgGKuZz9_sF76sOH4xhQEcvHkg9V-rO9/exec`
 - **Link Dashboard Admin / Pengawas**: `https://script.google.com/macros/s/AKfycbxw20eF7UAvQv4zJJlMds32mUjU42KInSNiLgGKuZz9_sF76sOH4xhQEcvHkg9V-rO9/exec?page=admin` (atau `?page=pengawas`)

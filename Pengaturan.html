@@ -29,7 +29,7 @@
           <!-- Kolom Kiri: Identitas, Logo & Dual-Mode Kop Ingestion -->
           <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
             <h3 class="text-sm font-extrabold text-slate-900 border-b border-slate-100 pb-3">
-              <i class="fa-solid fa-school text-brand-600 mr-1.5"></i> Identitas Web & Kop Surat (Sheet: Pengaturan)
+              <i class="fa-solid fa-school text-brand-600 mr-1.5"></i> Identitas Web &amp; Kop Surat
             </h3>
 
             <div>
@@ -88,7 +88,7 @@
               </div>
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">Sumber Data Cetak Laporan</label>
-                <input id="set-sumber-data" type="text" placeholder="Spreadsheet DB_Anticurang & Log_Monitoring"
+                <input id="set-sumber-data" type="text" placeholder="Database Ujian & Pengawasan"
                   class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl outline-none">
               </div>
             </div>
@@ -114,17 +114,17 @@
               </label>
 
               <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">PIN Login & Buka Kunci Pengawas (Di Database)</label>
+                <label class="block text-xs font-bold text-slate-600 mb-1">PIN Login &amp; Buka Kunci Pengawas</label>
                 <div class="flex gap-2">
                   <input id="set-pin-pengawas" type="text" required minlength="4" placeholder="PIN untuk pengawas ruang..."
                     class="flex-1 text-sm font-mono font-bold px-3 py-2 border border-slate-300 rounded-xl outline-none">
                   <button type="button" onclick="generateRandomProctorPin()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200">Acak PIN</button>
                 </div>
-                <p class="text-[11px] text-slate-500 mt-1">Tersimpan langsung di Sheet <code>Pengaturan</code> kolom <b>PIN Pengawas</b> (bisa diubah kapan saja di sini maupun langsung di Spreadsheet). Dipakai untuk login Pengawas di Dashboard Monitoring serta buka kunci layar siswa.</p>
+                <p class="text-[11px] text-slate-500 mt-1">Dipakai untuk login Pengawas di Dashboard Monitoring serta membuka kunci layar ujian siswa.</p>
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">PIN Login Admin (Di Database)</label>
+                <label class="block text-xs font-bold text-slate-600 mb-1">PIN Login Admin</label>
                 <div class="flex gap-2">
                   <input id="set-pin-admin" type="password" required minlength="4" placeholder="PIN Login Admin..."
                     class="flex-1 text-sm font-mono font-bold px-3 py-2 border border-slate-300 rounded-xl outline-none">
@@ -132,7 +132,7 @@
                     <i id="icon-eye-admin-pin" class="fa-regular fa-eye"></i>
                   </button>
                 </div>
-                <p class="text-[11px] text-slate-500 mt-1">Tersimpan langsung di Sheet <code>Pengaturan</code> kolom <b>PIN Admin</b> (minimal 4 karakter). Dapat diubah di sini atau langsung di sel Spreadsheet.</p>
+                <p class="text-[11px] text-slate-500 mt-1">Minimal 4 karakter untuk masuk sebagai Administrator dengan akses penuh.</p>
               </div>
             </div>
 
@@ -143,6 +143,51 @@
               <button id="btn-save-settings" type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
                 <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Pengaturan
               </button>
+            </div>
+          </div>
+
+          <!-- Panel Bawah: Koneksi Database & URL Deploy (Tanpa Edit Kode) -->
+          <div class="lg:col-span-12 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">
+                  <i class="fa-solid fa-database text-brand-600 mr-1.5"></i> Koneksi Database &amp; Link Web App
+                </h3>
+                <p class="text-[11px] text-slate-500 mt-0.5">Ubah Spreadsheet database atau link deploy cadangan langsung dari sini tanpa perlu mengedit kode.</p>
+              </div>
+              <button id="btn-init-db" type="button" onclick="initDatabaseStructureNow()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs">
+                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Siapkan Struktur Database
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-bold text-slate-700">Database Spreadsheet Aktif</span>
+                  <span id="conn-active-db-name" class="text-[11px] font-semibold text-brand-700 truncate max-w-[180px]">-</span>
+                </div>
+                <div id="conn-active-db-id" class="font-mono text-[11px] bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-600 truncate">-</div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Ganti Link / ID Spreadsheet Baru (Opsional)</label>
+                  <input id="set-custom-spreadsheet" type="text" placeholder="Tempel URL Google Sheet atau ID baru (kosong = otomatis/bawaan)"
+                    class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
+                  <p class="text-[11px] text-slate-500 mt-1">Jika Anda menduplikasi Spreadsheet, database otomatis mengikuti Spreadsheet hasil duplikasi tanpa mengisi kolom ini.</p>
+                </div>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-bold text-slate-700">Link Deploy Web App Aktif</span>
+                  <button type="button" onclick="copyActiveDeployUrl()" class="text-[11px] font-bold text-brand-600 hover:underline">Salin Link</button>
+                </div>
+                <div id="conn-active-deploy-url" class="font-mono text-[11px] bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-600 truncate">-</div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Link Deploy Web App Cadangan (Opsional)</label>
+                  <input id="set-custom-deploy-url" type="text" placeholder="Kosong = deteksi otomatis URL deploy yang sedang aktif"
+                    class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
+                  <p class="text-[11px] text-slate-500 mt-1">Aplikasi otomatis memakai URL deploy aktif saat ini; isi hanya jika ingin mengarahkan tombol navigasi ke link deploy tertentu.</p>
+                </div>
+              </div>
             </div>
           </div>
         </form>
@@ -205,9 +250,39 @@
       }
       document.getElementById('set-pin-pengawas').value = s.pinPengawas || '654321';
       document.getElementById('set-pin-admin').value = s.pinAdmin || '123456';
+      const conn = res.connection || {};
+      document.getElementById('conn-active-db-id').textContent = conn.activeSpreadsheetId || '-';
+      document.getElementById('conn-active-db-name').textContent = conn.activeSpreadsheetName || 'Spreadsheet Terhubung';
+      document.getElementById('conn-active-deploy-url').textContent = conn.activeDeployUrl || getAppUrl();
+      document.getElementById('set-custom-spreadsheet').value = conn.customSpreadsheetId || '';
+      document.getElementById('set-custom-deploy-url').value = conn.customDeployUrl || '';
       setState.logoBase64 = '';
       setState.kopBase64 = '';
       updatePreviews();
+    }
+
+    function copyActiveDeployUrl() {
+      const txt = (document.getElementById('conn-active-deploy-url').textContent || '').trim();
+      if (txt && txt !== '-') copyText(txt);
+    }
+
+    async function initDatabaseStructureNow() {
+      const btn = document.getElementById('btn-init-db');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyiapkan...';
+      try {
+        const res = await callServer('initializeDatabaseByAdmin', globalState.adminToken);
+        if (res && res.ok) {
+          showToast(res.message, 'success');
+        } else {
+          showToast((res && res.message) || 'Gagal menyiapkan struktur database.', 'error');
+        }
+      } catch (err) {
+        showToast('Error: ' + (err.message || err), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Siapkan Struktur Database';
+      }
     }
 
     function setLogoMode(mode) {
@@ -309,7 +384,9 @@
           maxViolations: Number(document.getElementById('set-max-violations').value),
           requireFullscreen: document.getElementById('set-require-fullscreen').checked,
           pinPengawas: document.getElementById('set-pin-pengawas').value.trim(),
-          pinAdmin: document.getElementById('set-pin-admin').value.trim()
+          pinAdmin: document.getElementById('set-pin-admin').value.trim(),
+          customSpreadsheetId: document.getElementById('set-custom-spreadsheet').value.trim(),
+          customDeployUrl: document.getElementById('set-custom-deploy-url').value.trim()
         });
         if (!res || !res.ok) { Swal.fire('Gagal', (res && res.message) || 'Gagal menyimpan.', 'error'); return; }
         showToast(res.message, 'success');

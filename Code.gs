@@ -63,7 +63,7 @@ const DEFAULT_SETTINGS = {
   logo: 'https://drive.google.com/file/d/1_4m0lkw99HvxaPXvOhy0UOudoPmiIRc-/view?usp=drive_link',
   kop: 'https://drive.google.com/file/d/1QXtnYwIrCc-pihDUoidjkRW5UVWykOn-/view?usp=drive_link',
   folderIdDrive: '',
-  sumberData: 'Spreadsheet DB_Anticurang & Log_Monitoring',
+  sumberData: 'Database Ujian & Pengawasan',
   pinPengawas: '654321',
   pinAdmin: '123456'
 };
@@ -143,9 +143,16 @@ function include(filename, data) {
 }
 
 /**
- * Mengembalikan URL Web App aktif (menjaga URL deployment tetap).
+ * Mengembalikan URL Web App aktif:
+ * 1. Override opsional CUSTOM_DEPLOY_URL (jika diset Admin di Pengaturan Sistem)
+ * 2. ScriptApp.getService().getUrl() (otomatis mendeteksi URL deploy terbaru)
+ * 3. FIXED_DEPLOY_URL (cadangan fallback)
  */
 function getAppUrl() {
+  try {
+    const customUrl = String(PropertiesService.getScriptProperties().getProperty('CUSTOM_DEPLOY_URL') || '').trim();
+    if (customUrl) return customUrl;
+  } catch (e) {}
   try {
     const svcUrl = ScriptApp.getService().getUrl();
     if (svcUrl) return svcUrl;
@@ -496,7 +503,7 @@ function verifyProctorUnlockPin(pin, sessionId) {
   const settings = getSettings_();
   const proctorPin = String(settings.pinPengawas || DEFAULT_PROCTOR_PIN).trim();
   if (!input || input !== proctorPin) {
-    return { ok: false, message: 'PIN Pengawas salah (cek kolom PIN Pengawas di Sheet Pengaturan).' };
+    return { ok: false, message: 'PIN Pengawas salah. Hubungi Pengawas atau cek Pengaturan Sistem.' };
   }
   if (sessionId) {
     updateMonitoringSession({
@@ -572,7 +579,40 @@ function getAdminDashboardData(token) {
     exams: exams,
     masterMapel: masterMapel,
     masterKelas: masterKelas,
+    connection: role === 'Admin' ? getConnectionInfo_(ss) : null,
     monitoring: monitoring
+  };
+}
+
+function getConnectionInfo_(ss) {
+  const props = PropertiesService.getScriptProperties();
+  let ssId = '';
+  let ssName = '';
+  try { ssId = ss && typeof ss.getId === 'function' ? ss.getId() : ''; } catch (e) {}
+  if (!ssId) {
+    try { ssId = extractSpreadsheetIdAny_(ss && typeof ss.getUrl === 'function' ? ss.getUrl() : '') || ''; } catch (e) {}
+  }
+  try { ssName = ss && typeof ss.getName === 'function' ? ss.getName() : ''; } catch (e) {}
+  return {
+    activeSpreadsheetId: ssId || SPREADSHEET_ID,
+    activeSpreadsheetName: ssName,
+    customSpreadsheetId: String(props.getProperty('CUSTOM_SPREADSHEET_ID') || '').trim(),
+    customDeployUrl: String(props.getProperty('CUSTOM_DEPLOY_URL') || '').trim(),
+    activeDeployUrl: getAppUrl()
+  };
+}
+
+/**
+ * Menyiapkan 5 sheet struktur database pada spreadsheet aktif (untuk Admin dari UI Pengaturan).
+ */
+function initializeDatabaseByAdmin(token) {
+  if (!isValidAdminToken_(token)) {
+    return { ok: false, authError: true, message: 'Sesi admin berakhir. Silakan login kembali.' };
+  }
+  const out = initializeSpreadsheetStructure();
+  return {
+    ok: Boolean(out && out.ok),
+    message: 'Struktur database berhasil disiapkan (' + ((out && out.sheets) ? out.sheets.length : 5) + ' tabel aktif).'
   };
 }
 
@@ -618,7 +658,64 @@ function addMasterRecord(token, kind, payload) {
 
     return {
       ok: true,
-      message: spec.valueLabel + ' "' + val + '" berhasil ditambahkan ke ' + spec.sheetName + '.',
+      message: spec.valueLabel + ' "' + val + '" berhasil ditambahkan.',
+      items: readMasterRowsBySpec_(ss, spec)
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Memperbarui 1 baris data master (No dan/atau Nama Mapel / Kelas) oleh Admin.
+ */
+function updateMasterRecord(token, kind, payload) {
+  if (!isValidAdminToken_(token)) {
+    return { ok: false, authError: true, message: 'Sesi admin berakhir. Silakan login kembali.' };
+  }
+  const spec = getMasterSpec_(kind);
+  if (!spec) {
+    return { ok: false, message: 'Jenis data master tidak dikenal.' };
+  }
+  payload = payload || {};
+  const idx = Number(payload.rowIndex);
+  const val = String(payload.value || payload.namaMapel || payload.kelas || '').trim();
+  const customNo = String(payload.no !== undefined ? payload.no : '').trim();
+  if (!idx || idx < 2) {
+    return { ok: false, message: 'Baris data tidak valid.' };
+  }
+  if (!val) {
+    return { ok: false, message: spec.valueLabel + ' wajib diisi.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    const ss = getSpreadsheet_();
+    const sheet = ensureSheetWithHeaders_(ss, spec.sheetName, spec.headers);
+    if (idx > sheet.getLastRow()) {
+      return { ok: false, message: 'Data sudah tidak ada di database.' };
+    }
+    const cols = getColumnMap_(sheet, spec.headers);
+    const existing = readMasterRowsBySpec_(ss, spec);
+    const isDuplicate = existing.some(function (item) {
+      return item.rowIndex !== idx && String(item[spec.propName] || '').trim().toLowerCase() === val.toLowerCase();
+    });
+    if (isDuplicate) {
+      return { ok: false, message: spec.valueLabel + ' "' + val + '" sudah digunakan.' };
+    }
+
+    const valCol = resolveMasterValueCol_(sheet, cols, spec);
+    if (customNo !== '') {
+      const noVal = !isNaN(Number(customNo)) ? Number(customNo) : customNo;
+      sheet.getRange(idx, cols['No']).setValue(noVal);
+    }
+    sheet.getRange(idx, valCol).setNumberFormat('@').setValue(val);
+    SpreadsheetApp.flush();
+
+    return {
+      ok: true,
+      message: spec.valueLabel + ' "' + val + '" berhasil diperbarui.',
       items: readMasterRowsBySpec_(ss, spec)
     };
   } finally {
@@ -648,7 +745,7 @@ function deleteMasterRecord(token, kind, rowIndex) {
     const ss = getSpreadsheet_();
     const sheet = ensureSheetWithHeaders_(ss, spec.sheetName, spec.headers);
     if (idx > sheet.getLastRow()) {
-      return { ok: false, message: 'Data sudah tidak ada di spreadsheet.' };
+      return { ok: false, message: 'Data sudah tidak ada di database.' };
     }
     const cols = getColumnMap_(sheet, spec.headers);
     sheet.deleteRow(idx);
@@ -657,7 +754,7 @@ function deleteMasterRecord(token, kind, rowIndex) {
 
     return {
       ok: true,
-      message: 'Data berhasil dihapus dari ' + spec.sheetName + '.',
+      message: 'Data berhasil dihapus.',
       items: readMasterRowsBySpec_(ss, spec)
     };
   } finally {
@@ -711,7 +808,7 @@ function saveExamRecord(token, payload) {
 
     return {
       ok: true,
-      message: isUpdate ? 'Data soal berhasil diperbarui.' : 'Link soal baru berhasil ditambahkan ke DB_Anticurang.',
+      message: isUpdate ? 'Data soal berhasil diperbarui.' : 'Link soal baru berhasil ditambahkan.',
       rowIndex: targetRow
     };
   } finally {
@@ -768,7 +865,7 @@ function importExamsFromExcel(token, rowsArray, replaceExisting) {
     return {
       ok: true,
       count: sanitized.length,
-      message: sanitized.length + ' jadwal link soal berhasil diimpor ke DB_Anticurang.'
+      message: sanitized.length + ' jadwal link soal berhasil diimpor.'
     };
   } finally {
     lock.releaseLock();
@@ -800,7 +897,7 @@ function deleteExamRecord(token, rowIndex) {
     SpreadsheetApp.flush();
     clearPortalCache_();
 
-    return { ok: true, message: 'Data soal berhasil dihapus dari DB_Anticurang.' };
+    return { ok: true, message: 'Data soal berhasil dihapus.' };
   } finally {
     lock.releaseLock();
   }
@@ -856,11 +953,57 @@ function saveAppSettings(token, payload) {
     return { ok: false, message: 'PIN Login Admin minimal 4 karakter.' };
   }
 
+  const props = PropertiesService.getScriptProperties();
+  let customSsIdToSave = null;
+  if (payload.customSpreadsheetId !== undefined) {
+    const rawSs = String(payload.customSpreadsheetId || '').trim();
+    if (!rawSs) {
+      customSsIdToSave = '';
+    } else {
+      const extractedSs = extractSpreadsheetIdAny_(rawSs);
+      if (!extractedSs) {
+        return { ok: false, message: 'Link atau ID Google Spreadsheet tidak valid.' };
+      }
+      try {
+        SpreadsheetApp.openById(extractedSs);
+      } catch (openErr) {
+        return { ok: false, message: 'Spreadsheet baru tidak dapat diakses: ' + openErr.message };
+      }
+      customSsIdToSave = extractedSs;
+    }
+  }
+
+  let customDeployToSave = null;
+  if (payload.customDeployUrl !== undefined) {
+    const rawDep = String(payload.customDeployUrl || '').trim();
+    if (!rawDep) {
+      customDeployToSave = '';
+    } else if (!/^https?:\/\/.+/i.test(rawDep)) {
+      return { ok: false, message: 'Link Deploy Web App harus diawali https://.' };
+    } else {
+      customDeployToSave = rawDep;
+    }
+  }
+
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
+    if (customSsIdToSave !== null) {
+      props.setProperty('CUSTOM_SPREADSHEET_ID', customSsIdToSave);
+    }
+    if (customDeployToSave !== null) {
+      props.setProperty('CUSTOM_DEPLOY_URL', customDeployToSave);
+    }
+
     const ss = getSpreadsheet_();
     const sheet = ensureSheetWithHeaders_(ss, SHEET_SETTINGS, SETTINGS_HEADERS);
+    if (customSsIdToSave) {
+      ensureSheetWithHeaders_(ss, SHEET_DB, DB_HEADERS);
+      ensureDbDurationColumnInSheet_(ss.getSheetByName(SHEET_DB));
+      ensureSheetWithHeaders_(ss, SHEET_MAPEL, MAPEL_HEADERS);
+      ensureSheetWithHeaders_(ss, SHEET_KELAS, KELAS_HEADERS);
+      ensureSheetWithHeaders_(ss, SHEET_MONITORING, MONITORING_HEADERS);
+    }
     const cols = getColumnMap_(sheet, SETTINGS_HEADERS);
     const oldSettings = getSettings_(ss);
     const pinAdmin = pinAdminInput || oldSettings.pinAdmin || getStoredAdminPin_();
@@ -894,7 +1037,6 @@ function saveAppSettings(token, payload) {
     sheet.getRange(2, cols['PIN Admin']).setNumberFormat('@').setValue(pinAdmin);
     SpreadsheetApp.flush();
 
-    const props = PropertiesService.getScriptProperties();
     const maxViol = Number(payload.maxViolations);
     if (!isNaN(maxViol) && maxViol >= 0 && maxViol <= 20) {
       props.setProperty('MAX_VIOLATIONS', String(Math.floor(maxViol)));
@@ -908,7 +1050,8 @@ function saveAppSettings(token, payload) {
 
     return {
       ok: true,
-      message: 'Pengaturan, PIN Pengawas & PIN Admin berhasil disimpan ke Sheet Pengaturan.',
+      message: 'Pengaturan sistem, keamanan & koneksi database berhasil disimpan.',
+      connection: getConnectionInfo_(ss),
       settings: enrichSettingsForClient_({
         namaSekolah: namaSekolah,
         logo: logo,
@@ -938,12 +1081,36 @@ function testNormalizeFormUrl(token, rawUrl) {
  * INTERNAL HELPERS
  * ========================================================================= */
 
+function extractSpreadsheetIdAny_(val) {
+  const s = String(val || '').trim();
+  if (!s) return '';
+  const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  const mId = s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (mId) return mId[1];
+  if (/^[a-zA-Z0-9_-]{20,}$/.test(s)) return s;
+  return '';
+}
+
 function getSpreadsheet_() {
+  let customId = '';
+  try {
+    customId = String(PropertiesService.getScriptProperties().getProperty('CUSTOM_SPREADSHEET_ID') || '').trim();
+  } catch (e) {}
+  if (customId) {
+    try {
+      return SpreadsheetApp.openById(customId);
+    } catch (eCustom) {
+      throw new Error('Tidak dapat mengakses Database Spreadsheet ID ' + customId + ': ' + eCustom.message);
+    }
+  }
+  try {
+    const active = SpreadsheetApp.getActiveSpreadsheet();
+    if (active) return active;
+  } catch (eActive) {}
   try {
     return SpreadsheetApp.openById(SPREADSHEET_ID);
   } catch (e) {
-    const active = SpreadsheetApp.getActiveSpreadsheet();
-    if (active) return active;
     throw new Error('Tidak dapat mengakses Spreadsheet ID ' + SPREADSHEET_ID + ': ' + e.message);
   }
 }

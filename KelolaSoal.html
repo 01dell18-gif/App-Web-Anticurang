@@ -9,7 +9,7 @@
   <?!= include('Sidebar'); ?>
 
   <div class="flex-1 flex flex-col h-dvh-screen overflow-hidden w-full">
-    <?!= include('Header', { pageTitle: 'Kelola Link Soal (DB_Anticurang)' }); ?>
+    <?!= include('Header', { pageTitle: 'Kelola Link Soal' }); ?>
 
     <main class="flex-1 overflow-y-auto p-4 md:p-6 pb-24">
       <!-- Guard Login Admin -->
@@ -78,7 +78,7 @@
                 </tr>
               </thead>
               <tbody id="ks-tbody" class="divide-y divide-slate-100">
-                <tr><td colspan="9" class="px-4 py-8 text-center text-slate-400">Memuat data DB_Anticurang...</td></tr>
+                <tr><td colspan="9" class="px-4 py-8 text-center text-slate-400">Memuat daftar link soal...</td></tr>
               </tbody>
             </table>
           </div>
@@ -139,7 +139,7 @@
               <input id="exam-tanggal" type="date" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Durasi Soal (Menit - Kolom H)</label>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Durasi Soal (Menit)</label>
               <input id="exam-durasi" type="number" min="0" max="1440" placeholder="Misal: 30 (kosong = fleksibel)" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
             </div>
             <div>
@@ -151,11 +151,11 @@
               <input id="exam-selesai" type="time" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
             </div>
           </div>
-          <p class="text-[11px] text-slate-500">Waktu Mulai & Selesai menentukan kapan soal dapat dibuka dan terakhir dibuka. Durasi pengerjaan (kolom H) berjalan penuh sejak siswa membuka soal meski melewati Waktu Selesai; kosongkan jika fleksibel.</p>
+          <p class="text-[11px] text-slate-500">Waktu Mulai & Selesai menentukan kapan soal dapat dibuka dan terakhir dibuka. Durasi pengerjaan berjalan penuh sejak siswa membuka soal meski melewati Waktu Selesai; kosongkan jika fleksibel.</p>
         </div>
         <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
           <button type="button" onclick="closeExamFormModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white">Batal</button>
-          <button id="btn-save-exam" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan ke DB_Anticurang</button>
+          <button id="btn-save-exam" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan Data Soal</button>
         </div>
       </form>
     </div>
@@ -185,7 +185,7 @@
         document.getElementById('ks-content').classList.add('hidden');
         if (auth === 'forbidden_role') {
           document.querySelector('#ks-auth-guard h3').textContent = 'Akses Khusus Administrator';
-          document.querySelector('#ks-auth-guard p').textContent = 'Anda saat ini login sebagai Pengawas Ruang. Hanya Admin yang dapat mengelola link soal DB_Anticurang.';
+          document.querySelector('#ks-auth-guard p').textContent = 'Anda saat ini login sebagai Pengawas Ruang. Hanya Admin yang dapat mengelola daftar link soal.';
         }
         try {
           const pub = await callServer('getPublicPortalData', false);
@@ -228,13 +228,13 @@
       populateSelect(
         'exam-mapel',
         mapelItems,
-        mapelItems.length ? '-- Pilih Mata Pelajaran --' : '-- Belum ada data di DB_Mapel --',
+        mapelItems.length ? '-- Pilih Mata Pelajaran --' : '-- Belum ada Mata Pelajaran --',
         true
       );
       populateSelect(
         'exam-kelas',
         kelasItems,
-        kelasItems.length ? '-- Pilih Kelas --' : '-- Belum ada data di DB_Kelas --',
+        kelasItems.length ? '-- Pilih Kelas --' : '-- Belum ada Kelas --',
         true
       );
 
@@ -272,7 +272,7 @@
       });
 
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-slate-400">Belum ada link soal di Sheet DB_Anticurang.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-slate-400">Belum ada data link soal.</td></tr>';
         return;
       }
 
@@ -377,7 +377,7 @@
       } catch (err) {
         showToast('Error: ' + (err.message || err), 'error');
       } finally {
-        btn.disabled = false; btn.textContent = 'Simpan ke DB_Anticurang';
+        btn.disabled = false; btn.textContent = 'Simpan Data Soal';
       }
     }
 
@@ -386,7 +386,7 @@
       if (!ex) return;
       const res = await Swal.fire({
         title: 'Hapus Link Soal?',
-        text: 'Hapus "' + ex.mapel + ' (' + ex.kelas + ')" dari Sheet DB_Anticurang?',
+        text: 'Hapus "' + ex.mapel + ' (' + ex.kelas + ')" dari daftar soal?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc2626',
@@ -435,8 +435,8 @@
       });
       const ws = XLSX.utils.json_to_sheet(rows);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'DB_Anticurang');
-      XLSX.writeFile(wb, 'DB_Anticurang_' + todayIsoLocal() + '.xls', { bookType: 'biff8' });
+      XLSX.utils.book_append_sheet(wb, ws, 'Data_Soal');
+      XLSX.writeFile(wb, 'Daftar_Link_Soal_' + todayIsoLocal() + '.xls', { bookType: 'biff8' });
     }
 
     function handleExcelImportFile(e) {
@@ -469,7 +469,7 @@
 
           const ask = await Swal.fire({
             title: 'Impor ' + mapped.length + ' Link Soal?',
-            text: 'Pilih apakah ingin menambahkan ke daftar yang sudah ada atau mengganti seluruh isi DB_Anticurang.',
+            text: 'Pilih apakah ingin menambahkan ke daftar yang sudah ada atau mengganti seluruh daftar soal yang ada.',
             icon: 'question',
             showDenyButton: true,
             showCancelButton: true,

@@ -244,7 +244,7 @@
       const tbody = document.getElementById('mon-tbody');
       const list = getFilteredMonitoringRows();
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-slate-400">Belum ada data akses siswa pada Sheet Log_Monitoring.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-slate-400">Belum ada data pengawasan peserta ujian.</td></tr>';
         return;
       }
 
@@ -344,7 +344,7 @@
       const isAll = !rowIndex;
       const res = await Swal.fire({
         title: isAll ? 'Bersihkan Semua Log?' : 'Hapus 1 Baris Log?',
-        text: isAll ? 'Seluruh riwayat akses di Sheet Log_Monitoring akan dikosongkan.' : 'Baris monitoring ini akan dihapus permanen.',
+        text: isAll ? 'Seluruh riwayat pengawasan peserta akan dikosongkan.' : 'Baris monitoring ini akan dihapus permanen.',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc2626',
