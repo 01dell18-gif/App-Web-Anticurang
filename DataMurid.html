@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title><?= initialAppTitle ?> - Data Murid</title>
+  <?!= include('StyleCSS'); ?>
+</head>
+<body class="bg-slate-50 text-slate-800 flex h-dvh-screen overflow-hidden">
+  <?!= include('Sidebar'); ?>
+
+  <div class="flex-1 flex flex-col h-dvh-screen overflow-hidden w-full">
+    <?!= include('Header', { pageTitle: 'Data Murid' }); ?>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 pb-24">
+      <!-- Guard Login Admin -->
+      <section id="mrd-auth-guard" class="hidden bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 inline-flex items-center justify-center text-2xl mb-3">
+          <i class="fa-solid fa-user-graduate"></i>
+        </div>
+        <h3 class="text-lg font-extrabold text-slate-900">Akses Khusus Administrator</h3>
+        <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk mengelola daftar murid, NIS/NISN, dan kelas peserta ujian.</p>
+        <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+          <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
+        </button>
+      </section>
+
+      <section id="mrd-content" class="hidden space-y-5">
+        <!-- Toolbar Atas -->
+        <div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 w-full">
+            <input id="mrd-search" type="text" oninput="renderMuridTable()" placeholder="Cari Nama Murid / NIS / Kelas..."
+              class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none w-full sm:w-auto sm:min-w-[220px]">
+
+            <select id="mrd-kelas-filter" onchange="renderMuridTable()"
+              class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none w-full sm:w-auto sm:min-w-[165px]">
+              <option value="">-- Semua Kelas --</option>
+            </select>
+
+            <span id="mrd-count-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">0 Murid</span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <input id="murid-excel-input" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleMuridExcelImport(event)">
+            <button type="button" onclick="document.getElementById('murid-excel-input').click()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+              <i class="fa-solid fa-file-import mr-1"></i> Impor Excel
+            </button>
+            <button type="button" onclick="exportMuridExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+              <i class="fa-solid fa-file-excel mr-1"></i> Ekspor .xls
+            </button>
+            <a id="mrd-sheet-link" href="#" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+              <i class="fa-solid fa-table mr-1"></i> Google Sheet
+            </a>
+            <button type="button" onclick="navigateTo('kelola-soal')" class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+              <i class="fa-solid fa-link mr-1"></i> Kelola Soal
+            </button>
+          </div>
+        </div>
+
+        <!-- Form Tambah Murid -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <h3 class="text-sm font-extrabold text-slate-900">
+              <i class="fa-solid fa-user-plus text-emerald-600 mr-1.5"></i> Tambah Data Murid Baru
+            </h3>
+            <span class="text-[11px] text-slate-500">Daftar kelas &amp; nama murid otomatis dipakai untuk pilihan peserta ujian</span>
+          </div>
+          <form onsubmit="submitAddMurid(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+            <div class="sm:col-span-2">
+              <input id="add-murid-no" type="text" placeholder="No (Auto)"
+                class="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none">
+            </div>
+            <div class="sm:col-span-4">
+              <input id="add-murid-nama" type="text" required placeholder="Nama Lengkap Murid *"
+                class="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <div class="sm:col-span-2">
+              <input id="add-murid-nis" type="text" placeholder="NIS / NISN"
+                class="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <div class="sm:col-span-2 datalist-input-wrapper">
+              <input id="add-murid-kelas" type="text" list="list-murid-kelas" autocomplete="off" required placeholder="Kelas * (misal: XI DKV)"
+                class="w-full text-xs sm:text-sm py-2 pl-3 pr-7 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+              <datalist id="list-murid-kelas"></datalist>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
+            </div>
+            <div class="sm:col-span-2">
+              <button id="btn-add-murid" type="submit" class="w-full px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs">
+                <i class="fa-solid fa-plus mr-1"></i> Tambah Murid
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tabel Data Murid -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                <tr>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap w-20">No</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">Nama Murid</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">NIS / NISN</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">Kelas</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap text-right w-40">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="mrd-tbody" class="divide-y divide-slate-100">
+                <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Memuat data murid...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: Edit Data Murid -->
+  <div id="modal-edit-murid" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl max-w-md w-full shadow-2xl overflow-y-auto max-h-[90dvh]">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="font-extrabold text-slate-900">Edit Data Murid</h3>
+        <button type="button" onclick="closeEditMuridModal()" class="text-slate-400 hover:text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="submitEditMurid(event)">
+        <div class="p-5 space-y-3.5">
+          <input id="edit-murid-row-index" type="hidden">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">No</label>
+              <input id="edit-murid-no" type="text" placeholder="Nomor urut"
+                class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Kelas <span class="text-red-600">*</span></label>
+              <input id="edit-murid-kelas" type="text" required placeholder="Misal: XI DKV"
+                class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Nama Murid <span class="text-red-600">*</span></label>
+            <input id="edit-murid-nama" type="text" required placeholder="Nama lengkap murid..."
+              class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">NIS / NISN</label>
+            <input id="edit-murid-nis" type="text" placeholder="Nomor Induk Siswa / NISN"
+              class="w-full text-sm font-mono px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+        </div>
+        <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="closeEditMuridModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white">Batal</button>
+          <button id="btn-save-edit-murid" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <?!= include('AppJS'); ?>
+
+  <script>
+    const mrdState = { rows: [] };
+
+    window.onPageReady = async function () {
+      const auth = await ensureAdminAuthenticated(true);
+      if (auth !== true) {
+        document.getElementById('mrd-auth-guard').classList.remove('hidden');
+        document.getElementById('mrd-content').classList.add('hidden');
+        if (auth === 'forbidden_role') {
+          document.querySelector('#mrd-auth-guard h3').textContent = 'Akses Khusus Administrator';
+          document.querySelector('#mrd-auth-guard p').textContent = 'Hanya Admin yang dapat mengelola data murid dan NIS/NISN.';
+        }
+        try {
+          const pub = await callServer('getPublicPortalData', false);
+          if (pub && pub.ok) { globalState.isFirstTimeSetup = Boolean(pub.isFirstTimeSetup); applyGlobalBranding(pub.settings); }
+        } catch (e) {}
+        return;
+      }
+      document.getElementById('mrd-auth-guard').classList.add('hidden');
+      document.getElementById('mrd-content').classList.remove('hidden');
+      await loadMuridData();
+    };
+
+    window.onPageRefresh = async function () {
+      if (globalState.adminToken) await loadMuridData();
+    };
+
+    async function loadMuridData() {
+      const res = await callServer('getAdminDashboardData', globalState.adminToken);
+      if (!res || !res.ok) {
+        if (res && res.authError) { clearAdminSessionStorage(); updateAuthUI(); window.onPageReady(); }
+        return;
+      }
+      globalState.serverOffsetMs = res.serverNowMs - Date.now();
+      applyGlobalBranding(res.settings);
+      mrdState.rows = res.masterMurid || [];
+      if (res.spreadsheetUrl) document.getElementById('mrd-sheet-link').href = res.spreadsheetUrl;
+      syncMuridClassFilters();
+      renderMuridTable();
+    }
+
+    function syncMuridClassFilters() {
+      const classes = mrdState.rows.map(function (m) { return m.kelas; });
+      populateSelect('mrd-kelas-filter', classes, '-- Semua Kelas --', true);
+      populateSelect('add-murid-kelas', classes, null, true);
+    }
+
+    function renderMuridTable() {
+      const q = (document.getElementById('mrd-search').value || '').trim().toLowerCase();
+      const kf = document.getElementById('mrd-kelas-filter').value;
+      const list = mrdState.rows.filter(function (m) {
+        if (kf && m.kelas !== kf) return false;
+        if (q && (m.namaMurid + ' ' + m.nis + ' ' + m.kelas + ' ' + m.no).toLowerCase().indexOf(q) === -1) return false;
+        return true;
+      });
+
+      document.getElementById('mrd-count-pill').textContent = list.length + ' Murid';
+      const tbody = document.getElementById('mrd-tbody');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center text-slate-400">Belum ada data murid.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(function (m) {
+        return (
+          '<tr class="hover:bg-slate-50/80">' +
+            '<td class="px-4 py-2.5 font-mono font-bold text-slate-600 whitespace-nowrap">' + escapeHtml(m.no) + '</td>' +
+            '<td class="px-4 py-2.5 font-bold text-slate-900 whitespace-nowrap">' + escapeHtml(m.namaMurid) + '</td>' +
+            '<td class="px-4 py-2.5 font-mono text-xs text-slate-700 whitespace-nowrap">' + escapeHtml(m.nis || '-') + '</td>' +
+            '<td class="px-4 py-2.5 whitespace-nowrap"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">' + escapeHtml(m.kelas) + '</span></td>' +
+            '<td class="px-4 py-2.5 text-right whitespace-nowrap space-x-1.5">' +
+              '<button type="button" onclick="openEditMuridModal(' + m.rowIndex + ')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">Edit</button>' +
+              '<button type="button" onclick="confirmDeleteMurid(' + m.rowIndex + ', \'' + escapeJsAttr(m.namaMurid) + '\')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700">Hapus</button>' +
+            '</td>' +
+          '</tr>'
+        );
+      }).join('');
+    }
+
+    async function submitAddMurid(e) {
+      e.preventDefault();
+      const noEl = document.getElementById('add-murid-no');
+      const namaEl = document.getElementById('add-murid-nama');
+      const nisEl = document.getElementById('add-murid-nis');
+      const kelasEl = document.getElementById('add-murid-kelas');
+      const btn = document.getElementById('btn-add-murid');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...';
+      try {
+        const res = await callServer('addMuridRecord', globalState.adminToken, {
+          no: noEl.value.trim(),
+          namaMurid: namaEl.value.trim(),
+          nis: nisEl.value.trim(),
+          kelas: kelasEl.value.trim()
+        });
+        if (!res || !res.ok) {
+          if (res && res.authError) { clearAdminSessionStorage(); updateAuthUI(); window.onPageReady(); return; }
+          showToast((res && res.message) || 'Gagal menambah murid.', 'error');
+          return;
+        }
+        noEl.value = '';
+        namaEl.value = '';
+        nisEl.value = '';
+        mrdState.rows = res.items || [];
+        syncMuridClassFilters();
+        renderMuridTable();
+        showToast(res.message, 'success');
+      } catch (err) {
+        showToast('Error: ' + (err.message || err), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Tambah Murid';
+      }
+    }
+
+    function openEditMuridModal(rowIndex) {
+      const m = mrdState.rows.find(function (x) { return x.rowIndex === rowIndex; });
+      if (!m) return;
+      document.getElementById('edit-murid-row-index').value = String(rowIndex);
+      document.getElementById('edit-murid-no').value = m.no || '';
+      document.getElementById('edit-murid-nama').value = m.namaMurid || '';
+      document.getElementById('edit-murid-nis').value = m.nis || '';
+      document.getElementById('edit-murid-kelas').value = m.kelas || '';
+      document.getElementById('modal-edit-murid').classList.remove('hidden');
+      setTimeout(function () { document.getElementById('edit-murid-nama').focus(); }, 50);
+    }
+
+    function closeEditMuridModal() {
+      document.getElementById('modal-edit-murid').classList.add('hidden');
+    }
+
+    async function submitEditMurid(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-edit-murid');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+      try {
+        const res = await callServer('updateMuridRecord', globalState.adminToken, {
+          rowIndex: Number(document.getElementById('edit-murid-row-index').value),
+          no: document.getElementById('edit-murid-no').value.trim(),
+          namaMurid: document.getElementById('edit-murid-nama').value.trim(),
+          nis: document.getElementById('edit-murid-nis').value.trim(),
+          kelas: document.getElementById('edit-murid-kelas').value.trim()
+        });
+        if (!res || !res.ok) {
+          if (res && res.authError) { clearAdminSessionStorage(); updateAuthUI(); window.onPageReady(); return; }
+          showToast((res && res.message) || 'Gagal memperbarui murid.', 'error');
+          return;
+        }
+        mrdState.rows = res.items || [];
+        closeEditMuridModal();
+        syncMuridClassFilters();
+        renderMuridTable();
+        showToast(res.message, 'success');
+      } catch (err) {
+        showToast('Error: ' + (err.message || err), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Perubahan';
+      }
+    }
+
+    async function confirmDeleteMurid(rowIndex, nama) {
+      const ask = await Swal.fire({
+        title: 'Hapus Data Murid?',
+        text: 'Hapus "' + nama + '" dari daftar murid?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+      });
+      if (!ask.isConfirmed) return;
+
+      const res = await callServer('deleteMuridRecord', globalState.adminToken, rowIndex);
+      if (res && res.ok) {
+        mrdState.rows = res.items || [];
+        syncMuridClassFilters();
+        renderMuridTable();
+        showToast(res.message, 'success');
+      } else {
+        showToast((res && res.message) || 'Gagal menghapus data murid.', 'error');
+      }
+    }
+
+    function exportMuridExcel() {
+      if (!mrdState.rows.length) { showToast('Belum ada data murid.', 'warning'); return; }
+      const rows = mrdState.rows.map(function (m) {
+        return {
+          'No': m.no,
+          'Nama Murid': m.namaMurid,
+          'NIS/NISN': m.nis || '',
+          'Kelas': m.kelas
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data_Murid');
+      XLSX.writeFile(wb, 'Daftar_Data_Murid_' + todayIsoLocal() + '.xls', { bookType: 'biff8' });
+    }
+
+    function handleMuridExcelImport(e) {
+      const file = e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function (evt) {
+        try {
+          const wb = XLSX.read(new Uint8Array(evt.target.result), { type: 'array' });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          const rawJson = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+          const mapped = rawJson.map(function (r) {
+            return {
+              no: String(r['No'] || r['no'] || '').trim(),
+              namaMurid: String(r['Nama Murid'] || r['Nama Siswa'] || r['Nama'] || r['nama'] || '').trim(),
+              nis: String(r['NIS/NISN'] || r['NIS / NISN'] || r['NISN'] || r['NIS'] || r['nis'] || '').trim(),
+              kelas: String(r['Kelas'] || r['kelas'] || '').trim()
+            };
+          }).filter(function (x) { return x.namaMurid && x.kelas; });
+
+          if (!mapped.length) {
+            Swal.fire('Format Tidak Cocok', 'Pastikan file Excel memiliki kolom: Nama Murid, NIS/NISN, Kelas (opsional: No).', 'warning');
+            return;
+          }
+
+          const ask = await Swal.fire({
+            title: 'Impor ' + mapped.length + ' Data Murid?',
+            text: 'Pilih apakah ingin menambahkan ke daftar yang sudah ada atau menimpa seluruh daftar murid.',
+            icon: 'question',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Tambahkan',
+            denyButtonText: 'Timpa Semua',
+            cancelButtonText: 'Batal'
+          });
+          if (ask.isDismissed) return;
+
+          const out = await callServer('importMuridFromExcel', globalState.adminToken, mapped, Boolean(ask.isDenied));
+          if (out && out.ok) {
+            mrdState.rows = out.items || [];
+            syncMuridClassFilters();
+            renderMuridTable();
+            showToast(out.message, 'success');
+          } else {
+            Swal.fire('Gagal Impor', (out && out.message) || 'Terjadi kesalahan.', 'error');
+          }
+        } catch (err) {
+          Swal.fire('Gagal Membaca Excel', String(err.message || err), 'error');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  </script>
+</body>
+</html>

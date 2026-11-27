@@ -52,7 +52,10 @@
               <i class="fa-solid fa-table mr-1"></i> Google Sheet
             </a>
             <button type="button" onclick="navigateTo('data-master')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
-              <i class="fa-solid fa-layer-group mr-1"></i> Mapel &amp; Kelas
+              <i class="fa-solid fa-book-open mr-1"></i> Data Mapel
+            </button>
+            <button type="button" onclick="navigateTo('data-murid')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+              <i class="fa-solid fa-user-graduate mr-1"></i> Data Murid
             </button>
             <button type="button" onclick="openExamFormModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
               <i class="fa-solid fa-plus mr-1"></i> Tambah Link Form
@@ -105,7 +108,7 @@
             <div>
               <div class="flex items-center justify-between gap-2 mb-1">
                 <label class="block text-xs font-bold text-slate-600">Kelas <span class="text-red-600">*</span></label>
-                <button type="button" onclick="navigateTo('data-master')" class="text-[11px] font-bold text-brand-600 hover:underline">+ Kelola Kelas</button>
+                <button type="button" onclick="navigateTo('data-murid')" class="text-[11px] font-bold text-brand-600 hover:underline">+ Data Murid</button>
               </div>
               <select id="exam-kelas" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="">-- Pilih Kelas --</option>

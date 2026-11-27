@@ -69,9 +69,13 @@
           <i class="fa-solid fa-link w-4 text-center"></i>
           <span>Kelola Link Soal</span>
         </button>
-        <button type="button" onclick="navigateTo('data-master')" class="nav-link-item w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center gap-2.5 transition <?= currentPage === 'data-master' ? 'bg-brand-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800' ?>">
-          <i class="fa-solid fa-layer-group w-4 text-center"></i>
-          <span>Data Mapel & Kelas</span>
+        <button type="button" onclick="navigateTo('data-master')" class="nav-link-item w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center gap-2.5 transition <?= (currentPage === 'data-master' || currentPage === 'data-mapel') ? 'bg-brand-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800' ?>">
+          <i class="fa-solid fa-book-open w-4 text-center"></i>
+          <span>Data Mapel</span>
+        </button>
+        <button type="button" onclick="navigateTo('data-murid')" class="nav-link-item w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center gap-2.5 transition <?= (currentPage === 'data-murid' || currentPage === 'murid') ? 'bg-brand-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800' ?>">
+          <i class="fa-solid fa-user-graduate w-4 text-center"></i>
+          <span>Data Murid</span>
         </button>
         <button type="button" onclick="navigateTo('pengaturan')" class="nav-link-item w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center gap-2.5 transition <?= currentPage === 'pengaturan' ? 'bg-brand-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800' ?>">
           <i class="fa-solid fa-gear w-4 text-center"></i>

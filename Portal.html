@@ -133,26 +133,38 @@
             <div id="rules-meta" class="text-xs text-slate-600 mt-0.5">-</div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Nama Lengkap Siswa <span class="text-red-600">*</span></label>
-              <input id="student-name-input" type="text" required minlength="2" placeholder="Nama lengkap..."
-                class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">NIS / No. Peserta</label>
-              <input id="student-nis-input" type="text" placeholder="Opsional"
-                class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-            </div>
-          </div>
-
           <div>
             <div class="flex items-center justify-between gap-2 mb-1">
               <label class="block text-xs font-bold text-slate-600">Kelas <span class="text-red-600">*</span></label>
               <span id="student-class-auto-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">Otomatis dari jadwal soal</span>
             </div>
+            <select id="student-class-select" onchange="handlePortalClassSelect()" class="hidden w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+              <option value="">-- Pilih Kelas --</option>
+            </select>
             <input id="student-class-input" type="text" required placeholder="Misal: XI DKV"
               class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <label class="block text-xs font-bold text-slate-600">Nama Lengkap Siswa <span class="text-red-600">*</span></label>
+                <span id="student-name-auto-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Sesuai kelas</span>
+              </div>
+              <select id="student-name-select" onchange="handlePortalStudentSelect()" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+                <option value="">-- Pilih Nama Siswa --</option>
+              </select>
+              <input id="student-name-input" type="text" minlength="2" placeholder="Nama lengkap..."
+                class="hidden w-full text-sm px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+            </div>
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <label class="block text-xs font-bold text-slate-600">NIS / No. Peserta</label>
+                <span id="student-nis-auto-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">Otomatis sesuai nama</span>
+              </div>
+              <input id="student-nis-input" type="text" placeholder="Otomatis terisi..."
+                class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+            </div>
           </div>
 
           <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900">
@@ -262,6 +274,8 @@
   <script>
     const portalState = {
       exams: [],
+      students: [],
+      activeClassStudents: [],
       statusFilter: (APP_PARAMS && APP_PARAMS.filter === 'active') ? 'active' : 'all',
       pendingRowIndex: null
     };
@@ -317,6 +331,7 @@
         globalState.isFirstTimeSetup = Boolean(res.isFirstTimeSetup);
         globalState.security = res.security || globalState.security;
         portalState.exams = res.exams || [];
+        portalState.students = res.students || [];
 
         applyGlobalBranding(res.settings);
         setImgWithFallback('public-nav-logo', res.settings.logoUrl, res.settings.logoFallbackUrl);
@@ -511,24 +526,175 @@
       const durasiTxt = (ex.durasiMenit && ex.durasiMenit > 0) ? ('Durasi ' + ex.durasiMenit + ' Menit') : 'Durasi Fleksibel';
       document.getElementById('rules-meta').textContent = 'Kelas ' + (ex.kelas || '-') + ' • ' + ex.hariLabel + ' • ' + jam + ' • ' + durasiTxt;
       document.getElementById('rules-max-viol').textContent = globalState.security.maxViolations > 0 ? String(globalState.security.maxViolations) : 'peringatan';
-      document.getElementById('student-name-input').value = safeStorageGet('anticurang_last_name') || '';
-      document.getElementById('student-nis-input').value = safeStorageGet('anticurang_last_nis') || '';
+
+      const classSelect = document.getElementById('student-class-select');
       const classInput = document.getElementById('student-class-input');
       const classBadge = document.getElementById('student-class-auto-badge');
       const scheduledClass = String(ex.kelas || '').trim();
-      if (scheduledClass && scheduledClass !== '-') {
+      const isGenericClass = !scheduledClass || scheduledClass === '-' || /^semua(\s+kelas)?$/i.test(scheduledClass) || /^all$/i.test(scheduledClass);
+
+      const allStudentClasses = [];
+      const seenClasses = {};
+      (portalState.students || []).forEach(function (st) {
+        const k = String(st.kelas || '').trim();
+        if (k && !seenClasses[k]) {
+          seenClasses[k] = true;
+          allStudentClasses.push(k);
+        }
+      });
+
+      if (!isGenericClass) {
+        classSelect.classList.add('hidden');
+        classSelect.required = false;
+        classInput.classList.remove('hidden');
+        classInput.required = true;
         classInput.value = scheduledClass;
         classInput.readOnly = true;
         classInput.className = 'w-full text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-100 text-slate-700 font-semibold outline-none cursor-not-allowed';
         classBadge.classList.remove('hidden');
+        populatePortalStudentSelectForClass(scheduledClass, false);
+      } else if (allStudentClasses.length > 0) {
+        classInput.classList.add('hidden');
+        classInput.required = false;
+        classSelect.classList.remove('hidden');
+        classSelect.required = true;
+        populateSelect('student-class-select', allStudentClasses, '-- Pilih Kelas --', true);
+        const savedCls = safeStorageGet('anticurang_last_class') || '';
+        classSelect.value = seenClasses[savedCls] ? savedCls : '';
+        classInput.value = classSelect.value;
+        classBadge.classList.add('hidden');
+        populatePortalStudentSelectForClass(classSelect.value, true);
       } else {
+        classSelect.classList.add('hidden');
+        classSelect.required = false;
+        classInput.classList.remove('hidden');
+        classInput.required = true;
         classInput.readOnly = false;
         classInput.value = safeStorageGet('anticurang_last_class') || '';
         classInput.className = 'w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none';
         classBadge.classList.add('hidden');
+        populatePortalStudentSelectForClass('', false);
       }
+
       document.getElementById('rules-agree-check').checked = false;
       document.getElementById('modal-exam-rules').classList.remove('hidden');
+    }
+
+    function handlePortalClassSelect() {
+      const selCls = document.getElementById('student-class-select').value;
+      document.getElementById('student-class-input').value = selCls;
+      populatePortalStudentSelectForClass(selCls, true);
+    }
+
+    function getClassMatchedStudents_(classQuery) {
+      const q = String(classQuery || '').trim().toLowerCase();
+      if (!q || !portalState.students || !portalState.students.length) return { exact: [], list: [] };
+      const exact = portalState.students.filter(function (st) {
+        return String(st.kelas || '').trim().toLowerCase() === q;
+      });
+      if (exact.length > 0) {
+        return { exact: true, list: exact };
+      }
+      const prefix = portalState.students.filter(function (st) {
+        const k = String(st.kelas || '').trim().toLowerCase();
+        return k.indexOf(q) === 0;
+      });
+      return { exact: false, list: prefix };
+    }
+
+    function populatePortalStudentSelectForClass(classQuery, waitForClassPick) {
+      const nameSelect = document.getElementById('student-name-select');
+      const nameInput = document.getElementById('student-name-input');
+      const nameBadge = document.getElementById('student-name-auto-badge');
+      const nisInput = document.getElementById('student-nis-input');
+      const nisBadge = document.getElementById('student-nis-auto-badge');
+
+      const matched = getClassMatchedStudents_(classQuery);
+      portalState.activeClassStudents = matched.list || [];
+
+      if (waitForClassPick && !classQuery) {
+        nameSelect.classList.remove('hidden');
+        nameSelect.required = true;
+        nameSelect.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+        nameInput.classList.add('hidden');
+        nameInput.required = false;
+        nameInput.value = '';
+        nameBadge.classList.add('hidden');
+        nisInput.value = '';
+        nisInput.readOnly = true;
+        nisInput.className = 'w-full text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-100 text-slate-700 font-mono font-semibold outline-none cursor-not-allowed';
+        nisBadge.classList.remove('hidden');
+        return;
+      }
+
+      if (portalState.activeClassStudents.length > 0) {
+        nameInput.classList.add('hidden');
+        nameInput.required = false;
+        nameSelect.classList.remove('hidden');
+        nameSelect.required = true;
+        nameBadge.classList.remove('hidden');
+
+        nameSelect.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>' +
+          portalState.activeClassStudents.map(function (st, idx) {
+            const label = matched.exact ? st.nama : (st.nama + ' (' + st.kelas + ')');
+            return '<option value="' + idx + '">' + escapeHtml(label) + '</option>';
+          }).join('');
+
+        const lastSavedName = (safeStorageGet('anticurang_last_name') || '').trim().toLowerCase();
+        const savedIdx = portalState.activeClassStudents.findIndex(function (st) {
+          return st.nama.toLowerCase() === lastSavedName;
+        });
+        if (savedIdx !== -1) {
+          nameSelect.value = String(savedIdx);
+          handlePortalStudentSelect();
+        } else {
+          nameSelect.value = '';
+          nameInput.value = '';
+          nisInput.value = '';
+          nisInput.readOnly = true;
+          nisInput.placeholder = 'Otomatis sesuai nama';
+          nisInput.className = 'w-full text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-100 text-slate-700 font-mono font-semibold outline-none cursor-not-allowed';
+          nisBadge.classList.remove('hidden');
+        }
+      } else {
+        nameSelect.classList.add('hidden');
+        nameSelect.required = false;
+        nameInput.classList.remove('hidden');
+        nameInput.required = true;
+        nameBadge.classList.add('hidden');
+        nameInput.value = safeStorageGet('anticurang_last_name') || '';
+
+        nisInput.readOnly = false;
+        nisInput.value = safeStorageGet('anticurang_last_nis') || '';
+        nisInput.placeholder = 'Opsional';
+        nisInput.className = 'w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none';
+        nisBadge.classList.add('hidden');
+      }
+    }
+
+    function handlePortalStudentSelect() {
+      const nameSelect = document.getElementById('student-name-select');
+      const nameInput = document.getElementById('student-name-input');
+      const nisInput = document.getElementById('student-nis-input');
+      const nisBadge = document.getElementById('student-nis-auto-badge');
+      const classInput = document.getElementById('student-class-input');
+      const idxStr = nameSelect.value;
+
+      if (idxStr === '') {
+        nameInput.value = '';
+        nisInput.value = '';
+        return;
+      }
+      const chosen = portalState.activeClassStudents[Number(idxStr)];
+      if (!chosen) return;
+      nameInput.value = chosen.nama || '';
+      nisInput.value = chosen.nis || '-';
+      nisInput.readOnly = true;
+      nisInput.className = 'w-full text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-100 text-slate-700 font-mono font-semibold outline-none cursor-not-allowed';
+      nisBadge.classList.remove('hidden');
+      if (chosen.kelas) {
+        classInput.value = chosen.kelas;
+      }
     }
 
     function closeExamRulesModal() {

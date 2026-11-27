@@ -11,7 +11,7 @@ const FIXED_DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbxw20eF7UAvQv4
 
 const SHEET_DB = 'DB_Anticurang';
 const SHEET_MAPEL = 'DB_Mapel';
-const SHEET_KELAS = 'DB_Kelas';
+const SHEET_MURID = 'DB_Murid';
 const SHEET_SETTINGS = 'Pengaturan';
 const SHEET_MONITORING = 'Log_Monitoring';
 
@@ -29,8 +29,10 @@ const MAPEL_HEADERS = [
   'No',
   'Nama Mapel'
 ];
-const KELAS_HEADERS = [
+const MURID_HEADERS = [
   'No',
+  'Nama Murid',
+  'NIS/NISN',
   'Kelas'
 ];
 const SETTINGS_HEADERS = [
@@ -72,7 +74,7 @@ const DEFAULT_ADMIN_PIN = '123456';
 const DEFAULT_PROCTOR_PIN = '654321';
 const DEFAULT_MAX_VIOLATIONS = 3;
 const ADMIN_TOKEN_TTL_SEC = 3600;
-const PUBLIC_CACHE_KEY = 'portal_public_cache_v4';
+const PUBLIC_CACHE_KEY = 'portal_public_cache_v5';
 const PUBLIC_CACHE_TTL_SEC = 15;
 
 const ROUTE_MAP = {
@@ -84,7 +86,9 @@ const ROUTE_MAP = {
   'laporan': 'Laporan',
   'kelola-soal': 'KelolaSoal',
   'data-master': 'DataMaster',
-  'mapel-kelas': 'DataMaster',
+  'data-mapel': 'DataMaster',
+  'data-murid': 'DataMurid',
+  'murid': 'DataMurid',
   'pengaturan': 'Pengaturan'
 };
 
@@ -180,7 +184,7 @@ function initializeSpreadsheetStructure() {
   const dbSheet = ensureSheetWithHeaders_(ss, SHEET_DB, DB_HEADERS);
   ensureDbDurationColumnInSheet_(dbSheet);
   const mapelSheet = ensureSheetWithHeaders_(ss, SHEET_MAPEL, MAPEL_HEADERS);
-  const kelasSheet = ensureSheetWithHeaders_(ss, SHEET_KELAS, KELAS_HEADERS);
+  const muridSheet = ensureSheetWithHeaders_(ss, SHEET_MURID, MURID_HEADERS);
   const setSheet = ensureSheetWithHeaders_(ss, SHEET_SETTINGS, SETTINGS_HEADERS);
   const monSheet = ensureSheetWithHeaders_(ss, SHEET_MONITORING, MONITORING_HEADERS);
 
@@ -200,7 +204,7 @@ function initializeSpreadsheetStructure() {
   clearPortalCache_();
   return {
     ok: true,
-    sheets: [dbSheet.getName(), mapelSheet.getName(), kelasSheet.getName(), setSheet.getName(), monSheet.getName()]
+    sheets: [dbSheet.getName(), mapelSheet.getName(), muridSheet.getName(), setSheet.getName(), monSheet.getName()]
   };
 }
 
@@ -222,18 +226,21 @@ function getPublicPortalData(forceRefresh) {
   let tz;
   let settings;
   let rows;
+  let muridRows;
   let isFirstSetup;
 
   if (cachedPayload) {
     tz = cachedPayload.timeZone;
     settings = cachedPayload.settings;
     rows = cachedPayload.rows;
+    muridRows = cachedPayload.muridRows || [];
     isFirstSetup = cachedPayload.isFirstSetup;
   } else {
     ss = getSpreadsheet_();
     tz = ss.getSpreadsheetTimeZone() || 'Asia/Singapore';
     settings = getSettings_(ss);
     rows = readExamRows_(ss, tz);
+    muridRows = readMasterMuridRows_(ss);
     ensureSheetWithHeaders_(ss, SHEET_MONITORING, MONITORING_HEADERS);
     isFirstSetup = !hasCustomAdminPin_() && rows.length === 0;
     try {
@@ -241,6 +248,7 @@ function getPublicPortalData(forceRefresh) {
         timeZone: tz,
         settings: settings,
         rows: rows,
+        muridRows: muridRows,
         isFirstSetup: isFirstSetup
       }), PUBLIC_CACHE_TTL_SEC);
     } catch (e) {}
@@ -270,6 +278,15 @@ function getPublicPortalData(forceRefresh) {
     };
   });
 
+  const students = (muridRows || []).map(function (m) {
+    return {
+      no: m.no,
+      nama: m.namaMurid,
+      nis: m.nis,
+      kelas: m.kelas
+    };
+  });
+
   return {
     ok: true,
     serverNowMs: now.getTime(),
@@ -281,7 +298,8 @@ function getPublicPortalData(forceRefresh) {
       maxViolations: config.maxViolations,
       requireFullscreen: config.requireFullscreen
     },
-    exams: exams
+    exams: exams,
+    students: students
   };
 }
 
@@ -339,6 +357,21 @@ function startExamSession(payload) {
   const durationMinutes = Number(target.durasiMenit) || 0;
   const sessionEndMs = durationMinutes > 0 ? (now.getTime() + durationMinutes * 60 * 1000) : null;
 
+  const muridRows = readMasterMuridRows_(ss);
+  const nameLower = studentName.toLowerCase();
+  const reqClassLower = studentClass.toLowerCase();
+  const matchedMurid = muridRows.find(function (m) {
+    return m.namaMurid.toLowerCase() === nameLower && reqClassLower && m.kelas.toLowerCase() === reqClassLower;
+  }) || muridRows.find(function (m) {
+    return m.namaMurid.toLowerCase() === nameLower;
+  }) || null;
+
+  const finalName = matchedMurid ? matchedMurid.namaMurid : studentName;
+  const finalNis = (matchedMurid && matchedMurid.nis) ? matchedMurid.nis : (studentNis || '-');
+  const finalClass = (matchedMurid && matchedMurid.kelas)
+    ? matchedMurid.kelas
+    : ((target.kelas && target.kelas !== '-') ? target.kelas : (studentClass || '-'));
+
   const sessionId = Utilities.getUuid();
   const accessTimeStr = Utilities.formatDate(now, tz, 'yyyy-MM-dd HH:mm:ss');
 
@@ -351,10 +384,9 @@ function startExamSession(payload) {
     const rowData = new Array(MONITORING_HEADERS.length).fill('');
     rowData[cols['ID Sesi'] - 1] = sessionId;
     rowData[cols['Waktu Akses'] - 1] = accessTimeStr;
-    rowData[cols['Nama Siswa'] - 1] = studentName;
-    rowData[cols['NIS / Peserta'] - 1] = studentNis || '-';
-    const resolvedClass = (target.kelas && target.kelas !== '-') ? target.kelas : (studentClass || '-');
-    rowData[cols['Kelas Siswa'] - 1] = resolvedClass;
+    rowData[cols['Nama Siswa'] - 1] = finalName;
+    rowData[cols['NIS / Peserta'] - 1] = finalNis;
+    rowData[cols['Kelas Siswa'] - 1] = finalClass;
     rowData[cols['No Soal'] - 1] = target.no;
     rowData[cols['Mapel'] - 1] = target.mapel;
     rowData[cols['Kelas Jadwal'] - 1] = target.kelas;
@@ -379,9 +411,9 @@ function startExamSession(payload) {
     sessionId: sessionId,
     serverNowMs: now.getTime(),
     student: {
-      name: studentName,
-      nis: studentNis || '-',
-      kelas: (target.kelas && target.kelas !== '-') ? target.kelas : (studentClass || '-')
+      name: finalName,
+      nis: finalNis,
+      kelas: finalClass
     },
     exam: {
       rowIndex: target.rowIndex,
@@ -537,11 +569,13 @@ function getAdminDashboardData(token) {
 
   let exams = [];
   let masterMapel = [];
+  let masterMurid = [];
   let masterKelas = [];
   if (role === 'Admin') {
     const rows = readExamRows_(ss, tz);
     masterMapel = readMasterMapelRows_(ss);
-    masterKelas = readMasterKelasRows_(ss);
+    masterMurid = readMasterMuridRows_(ss);
+    masterKelas = deriveUniqueClassesFromMurid_(masterMurid);
     exams = rows.map(function (row) {
       const schedule = evaluateExamSchedule_(row, now, tz);
       return {
@@ -578,6 +612,7 @@ function getAdminDashboardData(token) {
     },
     exams: exams,
     masterMapel: masterMapel,
+    masterMurid: masterMurid,
     masterKelas: masterKelas,
     connection: role === 'Admin' ? getConnectionInfo_(ss) : null,
     monitoring: monitoring
@@ -756,6 +791,213 @@ function deleteMasterRecord(token, kind, rowIndex) {
       ok: true,
       message: 'Data berhasil dihapus.',
       items: readMasterRowsBySpec_(ss, spec)
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Menambahkan 1 data murid ke Sheet DB_Murid oleh Admin.
+ */
+function addMuridRecord(token, payload) {
+  if (!isValidAdminToken_(token)) {
+    return { ok: false, authError: true, message: 'Sesi admin berakhir. Silakan login kembali.' };
+  }
+  payload = payload || {};
+  const no = String(payload.no || '').trim();
+  const namaMurid = String(payload.namaMurid || payload.nama || '').trim();
+  const nis = String(payload.nis || payload.nisn || '').trim();
+  const kelas = String(payload.kelas || '').trim();
+  if (!namaMurid) return { ok: false, message: 'Nama Murid wajib diisi.' };
+  if (!kelas) return { ok: false, message: 'Kelas murid wajib diisi.' };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    const ss = getSpreadsheet_();
+    const sheet = ensureSheetWithHeaders_(ss, SHEET_MURID, MURID_HEADERS);
+    const cols = resolveMuridCols_(sheet);
+    const existing = readMasterMuridRows_(ss);
+
+    const dup = existing.some(function (m) {
+      if (nis && nis !== '-' && m.nis && m.nis.toLowerCase() === nis.toLowerCase()) return true;
+      return m.namaMurid.toLowerCase() === namaMurid.toLowerCase() && m.kelas.toLowerCase() === kelas.toLowerCase();
+    });
+    if (dup) {
+      return { ok: false, message: 'Data murid atau NIS/NISN tersebut sudah terdaftar.' };
+    }
+
+    const nextRow = findNextAppendRow_(sheet, 4);
+    const finalNo = no || computeNextNumber_(sheet, cols.no);
+    const noVal = (finalNo !== '' && !isNaN(Number(finalNo))) ? Number(finalNo) : finalNo;
+    sheet.getRange(nextRow, cols.no).setValue(noVal);
+    sheet.getRange(nextRow, cols.nama).setNumberFormat('@').setValue(namaMurid);
+    sheet.getRange(nextRow, cols.nis).setNumberFormat('@').setValue(nis);
+    sheet.getRange(nextRow, cols.kelas).setNumberFormat('@').setValue(kelas);
+    SpreadsheetApp.flush();
+    clearPortalCache_();
+
+    return {
+      ok: true,
+      message: 'Data murid "' + namaMurid + '" berhasil ditambahkan.',
+      items: readMasterMuridRows_(ss)
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Memperbarui 1 baris data murid pada Sheet DB_Murid oleh Admin.
+ */
+function updateMuridRecord(token, payload) {
+  if (!isValidAdminToken_(token)) {
+    return { ok: false, authError: true, message: 'Sesi admin berakhir. Silakan login kembali.' };
+  }
+  payload = payload || {};
+  const idx = Number(payload.rowIndex);
+  const customNo = String(payload.no !== undefined ? payload.no : '').trim();
+  const namaMurid = String(payload.namaMurid || payload.nama || '').trim();
+  const nis = String(payload.nis !== undefined ? payload.nis : (payload.nisn !== undefined ? payload.nisn : '')).trim();
+  const kelas = String(payload.kelas || '').trim();
+
+  if (!idx || idx < 2) return { ok: false, message: 'Baris data tidak valid.' };
+  if (!namaMurid) return { ok: false, message: 'Nama Murid wajib diisi.' };
+  if (!kelas) return { ok: false, message: 'Kelas murid wajib diisi.' };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    const ss = getSpreadsheet_();
+    const sheet = ensureSheetWithHeaders_(ss, SHEET_MURID, MURID_HEADERS);
+    if (idx > sheet.getLastRow()) {
+      return { ok: false, message: 'Data sudah tidak ada di database.' };
+    }
+    const cols = resolveMuridCols_(sheet);
+    const existing = readMasterMuridRows_(ss);
+    const dup = existing.some(function (m) {
+      if (m.rowIndex === idx) return false;
+      if (nis && nis !== '-' && m.nis && m.nis.toLowerCase() === nis.toLowerCase()) return true;
+      return m.namaMurid.toLowerCase() === namaMurid.toLowerCase() && m.kelas.toLowerCase() === kelas.toLowerCase();
+    });
+    if (dup) {
+      return { ok: false, message: 'Nama/Kelas atau NIS/NISN sudah dipakai data lain.' };
+    }
+
+    if (customNo !== '') {
+      const noVal = !isNaN(Number(customNo)) ? Number(customNo) : customNo;
+      sheet.getRange(idx, cols.no).setValue(noVal);
+    }
+    sheet.getRange(idx, cols.nama).setNumberFormat('@').setValue(namaMurid);
+    sheet.getRange(idx, cols.nis).setNumberFormat('@').setValue(nis);
+    sheet.getRange(idx, cols.kelas).setNumberFormat('@').setValue(kelas);
+    SpreadsheetApp.flush();
+    clearPortalCache_();
+
+    return {
+      ok: true,
+      message: 'Data murid "' + namaMurid + '" berhasil diperbarui.',
+      items: readMasterMuridRows_(ss)
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Menghapus 1 baris data murid dari Sheet DB_Murid oleh Admin.
+ */
+function deleteMuridRecord(token, rowIndex) {
+  if (!isValidAdminToken_(token)) {
+    return { ok: false, authError: true, message: 'Sesi admin berakhir. Silakan login kembali.' };
+  }
+  const idx = Number(rowIndex);
+  if (!idx || idx < 2) return { ok: false, message: 'Baris data tidak valid.' };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    const ss = getSpreadsheet_();
+    const sheet = ensureSheetWithHeaders_(ss, SHEET_MURID, MURID_HEADERS);
+    if (idx > sheet.getLastRow()) {
+      return { ok: false, message: 'Data sudah tidak ada di database.' };
+    }
+    const cols = resolveMuridCols_(sheet);
+    sheet.deleteRow(idx);
+    renumberNonFormulaNo_(sheet, cols.no, 4);
+    SpreadsheetApp.flush();
+    clearPortalCache_();
+
+    return {
+      ok: true,
+      message: 'Data murid berhasil dihapus.',
+      items: readMasterMuridRows_(ss)
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Impor massal data murid dari Excel ke DB_Murid oleh Admin.
+ */
+function importMuridFromExcel(token, rowsArray, replaceExisting) {
+  if (!isValidAdminToken_(token)) {
+    return { ok: false, authError: true, message: 'Sesi admin berakhir. Silakan login kembali.' };
+  }
+  if (!Array.isArray(rowsArray) || !rowsArray.length) {
+    return { ok: false, message: 'Data Excel kosong atau tidak terbaca.' };
+  }
+  const sanitized = [];
+  for (var i = 0; i < rowsArray.length; i++) {
+    const r = rowsArray[i] || {};
+    const namaMurid = String(r.namaMurid || r.nama || '').trim();
+    const nis = String(r.nis || r.nisn || '').trim();
+    const kelas = String(r.kelas || '').trim();
+    const no = String(r.no || '').trim();
+    if (namaMurid && kelas) {
+      sanitized.push({ no: no, namaMurid: namaMurid, nis: nis, kelas: kelas });
+    }
+  }
+  if (!sanitized.length) {
+    return { ok: false, message: 'Tidak ada baris valid (wajib memiliki Nama Murid dan Kelas).' };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const ss = getSpreadsheet_();
+    const sheet = ensureSheetWithHeaders_(ss, SHEET_MURID, MURID_HEADERS);
+    const cols = resolveMuridCols_(sheet);
+
+    if (replaceExisting && sheet.getLastRow() >= 2) {
+      sheet.deleteRows(2, sheet.getLastRow() - 1);
+    }
+
+    const startRow = findNextAppendRow_(sheet, 4);
+    let nextNo = parseInt(computeNextNumber_(sheet, cols.no), 10) || 1;
+    const width = Math.max(cols.no, cols.nama, cols.nis, cols.kelas, 4);
+    const valuesMatrix = sanitized.map(function (item) {
+      const rowArr = new Array(width).fill('');
+      const finalNo = item.no || String(nextNo++);
+      rowArr[cols.no - 1] = !isNaN(Number(finalNo)) ? Number(finalNo) : finalNo;
+      rowArr[cols.nama - 1] = item.namaMurid;
+      rowArr[cols.nis - 1] = item.nis;
+      rowArr[cols.kelas - 1] = item.kelas;
+      return rowArr;
+    });
+
+    sheet.getRange(startRow, cols.nis, valuesMatrix.length, 1).setNumberFormat('@');
+    sheet.getRange(startRow, 1, valuesMatrix.length, width).setValues(valuesMatrix);
+    SpreadsheetApp.flush();
+    clearPortalCache_();
+
+    return {
+      ok: true,
+      count: sanitized.length,
+      message: sanitized.length + ' data murid berhasil diimpor.',
+      items: readMasterMuridRows_(ss)
     };
   } finally {
     lock.releaseLock();
@@ -1001,7 +1243,7 @@ function saveAppSettings(token, payload) {
       ensureSheetWithHeaders_(ss, SHEET_DB, DB_HEADERS);
       ensureDbDurationColumnInSheet_(ss.getSheetByName(SHEET_DB));
       ensureSheetWithHeaders_(ss, SHEET_MAPEL, MAPEL_HEADERS);
-      ensureSheetWithHeaders_(ss, SHEET_KELAS, KELAS_HEADERS);
+      ensureSheetWithHeaders_(ss, SHEET_MURID, MURID_HEADERS);
       ensureSheetWithHeaders_(ss, SHEET_MONITORING, MONITORING_HEADERS);
     }
     const cols = getColumnMap_(sheet, SETTINGS_HEADERS);
@@ -1344,16 +1586,6 @@ function getMasterSpec_(kind) {
       propName: 'namaMapel'
     };
   }
-  if (k === 'kelas') {
-    return {
-      sheetName: SHEET_KELAS,
-      headers: KELAS_HEADERS,
-      headerColName: 'Kelas',
-      fallbackHeaderAliases: ['kelas', 'nama kelas'],
-      valueLabel: 'Kelas',
-      propName: 'kelas'
-    };
-  }
   return null;
 }
 
@@ -1373,8 +1605,62 @@ function readMasterMapelRows_(ss) {
   return readMasterRowsBySpec_(ss, getMasterSpec_('mapel'));
 }
 
-function readMasterKelasRows_(ss) {
-  return readMasterRowsBySpec_(ss, getMasterSpec_('kelas'));
+function resolveMuridCols_(sheet) {
+  const cols = getColumnMap_(sheet, MURID_HEADERS);
+  const lastCol = Math.max(sheet.getLastColumn(), 4);
+  const row1 = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
+  let noCol = cols['No'];
+  let namaCol = cols['Nama Murid'];
+  let nisCol = cols['NIS/NISN'];
+  let kelasCol = cols['Kelas'];
+
+  for (var i = 0; i < row1.length; i++) {
+    const lbl = String(row1[i] || '').trim().toLowerCase();
+    if (!lbl) continue;
+    if (lbl === 'no') noCol = i + 1;
+    else if (['nama murid', 'nama siswa', 'nama lengkap', 'nama'].indexOf(lbl) !== -1) namaCol = i + 1;
+    else if (['nis/nisn', 'nis / nisn', 'nisn', 'nis', 'no peserta', 'nis / no. peserta', 'nis / peserta'].indexOf(lbl) !== -1) nisCol = i + 1;
+    else if (['kelas', 'nama kelas', 'rombel'].indexOf(lbl) !== -1) kelasCol = i + 1;
+  }
+  return { no: noCol, nama: namaCol, nis: nisCol, kelas: kelasCol };
+}
+
+function readMasterMuridRows_(ss) {
+  const sheet = ensureSheetWithHeaders_(ss, SHEET_MURID, MURID_HEADERS);
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  const cols = resolveMuridCols_(sheet);
+  const maxCol = Math.max(cols.no, cols.nama, cols.nis, cols.kelas, 4);
+  const disp = sheet.getRange(2, 1, lastRow - 1, maxCol).getDisplayValues();
+  const list = [];
+  for (var i = 0; i < disp.length; i++) {
+    const no = String(disp[i][cols.no - 1] || '').trim();
+    const namaMurid = String(disp[i][cols.nama - 1] || '').trim();
+    const nis = String(disp[i][cols.nis - 1] || '').trim();
+    const kelas = String(disp[i][cols.kelas - 1] || '').trim();
+    if (!namaMurid && !nis && !kelas) continue;
+    list.push({
+      rowIndex: i + 2,
+      no: no || String(list.length + 1),
+      namaMurid: namaMurid,
+      nis: nis,
+      kelas: kelas
+    });
+  }
+  return list;
+}
+
+function deriveUniqueClassesFromMurid_(muridRows) {
+  const seen = {};
+  const out = [];
+  (muridRows || []).forEach(function (m) {
+    const k = String(m.kelas || '').trim();
+    if (k && !seen[k]) {
+      seen[k] = true;
+      out.push({ kelas: k });
+    }
+  });
+  return out;
 }
 
 function readMasterRowsBySpec_(ss, spec) {
