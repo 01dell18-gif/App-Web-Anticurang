@@ -77,9 +77,20 @@
             <option value="">Semua Hari / Tanggal</option>
           </select>
 
-          <select id="portal-kelas-filter" onchange="renderPortalExams()" class="w-full sm:w-auto text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none cursor-pointer min-w-[150px]">
-            <option value="">-- Semua Kelas --</option>
-          </select>
+          <!-- Filter Kelas: Bisa Ketik Pencarian & Bisa Klik Dropdown -->
+          <div class="relative w-full sm:w-auto sm:min-w-[165px]" id="portal-kelas-combobox">
+            <input id="portal-kelas-filter" type="text" autocomplete="off"
+              placeholder="-- Semua Kelas --"
+              onfocus="openPortalClassDropdown()"
+              oninput="handlePortalClassInput()"
+              class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+            <button type="button" tabindex="-1" onclick="togglePortalClassDropdown(event)"
+              class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer" title="Buka Pilihan Kelas">
+              <i id="portal-kelas-chevron" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
+            </button>
+            <div id="portal-kelas-menu" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 max-h-56 overflow-y-auto py-1 text-xs divide-y divide-slate-100">
+            </div>
+          </div>
 
           <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar pb-0.5 sm:pb-0">
             <button type="button" data-status="all" onclick="setPortalStatusFilter('all')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Semua</button>
@@ -318,6 +329,12 @@
       bindAntiCheatListeners();
       updateStatusPillUI();
       setInterval(updatePortalCountdowns, 1000);
+      document.addEventListener('click', function (e) {
+        const combo = document.getElementById('portal-kelas-combobox');
+        if (combo && !combo.contains(e.target)) {
+          closePortalClassDropdown();
+        }
+      });
       await loadPortalData(Boolean(forceRefresh));
     };
 
@@ -364,24 +381,27 @@
       }
     }
 
+    let portalClassList = [];
+
     function populatePortalFilters(exams) {
       const classSet = {};
-      const classList = [];
+      portalClassList = [];
       (exams || []).forEach(function (e) {
         const k = String(e.kelas || '').trim();
         if (k && !classSet[k]) {
           classSet[k] = true;
-          classList.push(k);
+          portalClassList.push(k);
         }
       });
       (portalState.students || []).forEach(function (s) {
         const k = String(s.kelas || '').trim();
         if (k && !classSet[k]) {
           classSet[k] = true;
-          classList.push(k);
+          portalClassList.push(k);
         }
       });
-      populateSelect('portal-kelas-filter', classList, '-- Semua Kelas --');
+      portalClassList.sort();
+      renderPortalClassMenuItems();
 
       const hariSelect = document.getElementById('portal-hari-filter');
       const prev = hariSelect.value;
@@ -394,6 +414,72 @@
       hariSelect.innerHTML = '<option value="">Semua Hari / Tanggal</option>' +
         keys.map(function (k) { return '<option value="' + escapeHtml(k) + '">' + escapeHtml(dayMap[k]) + '</option>'; }).join('');
       if (dayMap[prev]) hariSelect.value = prev;
+    }
+
+    function renderPortalClassMenuItems(filterText) {
+      const menu = document.getElementById('portal-kelas-menu');
+      if (!menu) return;
+      const q = String(filterText || '').trim().toLowerCase();
+      const currentVal = (document.getElementById('portal-kelas-filter').value || '').trim();
+
+      const matched = portalClassList.filter(function (cls) {
+        return !q || cls.toLowerCase().indexOf(q) !== -1;
+      });
+
+      let html = '<div onclick="selectPortalClass(\'\')" class="px-3 py-2 cursor-pointer hover:bg-slate-100 font-semibold text-slate-500 ' + (!currentVal ? 'bg-blue-50 text-brand-600 font-bold' : '') + '">-- Semua Kelas --</div>';
+
+      if (matched.length === 0) {
+        html += '<div class="px-3 py-2 text-slate-400 italic">Kelas tidak ditemukan</div>';
+      } else {
+        html += matched.map(function (cls) {
+          const isSelected = cls.toLowerCase() === currentVal.toLowerCase();
+          return '<div onclick="selectPortalClass(\'' + escapeHtml(cls) + '\')" class="px-3 py-2 cursor-pointer hover:bg-blue-50 hover:text-brand-700 ' + (isSelected ? 'bg-blue-50 text-brand-600 font-bold' : 'text-slate-700') + '">' + escapeHtml(cls) + '</div>';
+        }).join('');
+      }
+
+      menu.innerHTML = html;
+    }
+
+    function openPortalClassDropdown() {
+      const menu = document.getElementById('portal-kelas-menu');
+      const chevron = document.getElementById('portal-kelas-chevron');
+      if (!menu) return;
+      renderPortalClassMenuItems(document.getElementById('portal-kelas-filter').value);
+      menu.classList.remove('hidden');
+      if (chevron) chevron.classList.add('rotate-180');
+    }
+
+    function closePortalClassDropdown() {
+      const menu = document.getElementById('portal-kelas-menu');
+      const chevron = document.getElementById('portal-kelas-chevron');
+      if (menu) menu.classList.add('hidden');
+      if (chevron) chevron.classList.remove('rotate-180');
+    }
+
+    function togglePortalClassDropdown(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('portal-kelas-menu');
+      if (!menu) return;
+      if (menu.classList.contains('hidden')) {
+        document.getElementById('portal-kelas-filter').focus();
+        openPortalClassDropdown();
+      } else {
+        closePortalClassDropdown();
+      }
+    }
+
+    function handlePortalClassInput() {
+      const val = document.getElementById('portal-kelas-filter').value;
+      openPortalClassDropdown();
+      renderPortalClassMenuItems(val);
+      renderPortalExams();
+    }
+
+    function selectPortalClass(className) {
+      const input = document.getElementById('portal-kelas-filter');
+      input.value = className;
+      closePortalClassDropdown();
+      renderPortalExams();
     }
 
     function renderPortalStats(exams) {
