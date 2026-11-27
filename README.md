@@ -26,6 +26,7 @@ Aplikasi ujian daring (*online assessment*) serverless berbasis **Google Apps Sc
    - **Pencatatan Real-Time**: Setiap pelanggaran dan waktu mulai/selesai dicatat langsung ke sheet `Log_Monitoring`.
 5. **Graceful Time-Up Protection (Penanganan Waktu Habis & Submit Google Form)**:
    - Dilengkapi *countdown timer* interaktif pada topbar ujian.
+   - **Pengingat Sisa Waktu 2 Menit & 1 Menit**: Ketika sisa waktu mencapai 2 menit dan 1 menit, sistem memunculkan popup pengingat ramah disertai nada chime lembut dan indikator timer berkedip. Notifikasi ini dilindungi secara khusus sehingga kemunculan maupun klik tombol murid **dikecualikan 100% dari hitungan pelanggaran**.
    - Ketika waktu ujian habis, sistem memunculkan dialog peringatan interaktif dan memberikan tombol pintas untuk langsung fokus ke lembar Google Form agar siswa dapat segera menekan tombol **Kirim / Submit** sebelum sesi ditutup otomatis.
 6. **Pemisahan Jam Buka vs Durasi Soal (Opsi B)**:
    - `Waktu Mulai` & `Waktu Selesai` mengatur jendela waktu kapan siswa diperbolehkan membuka soal.

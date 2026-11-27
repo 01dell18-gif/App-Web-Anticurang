@@ -274,6 +274,25 @@ Alih-alih langsung menutup paksa halaman dan menghapus iframe saat waktu habis (
 4. Siswa memiliki kesempatan penuh untuk menekan tombol **"Kirim"** pada Google Form.
 5. Setelah formulir terkirim, siswa menekan tombol **"Saya Sudah Kirim & Selesai"**. Sesi ditutup secara tertib dan tercatat di Dashboard Monitoring sebagai status `"Selesai (Waktu Habis)"`.
 
+### Pengingat Sisa Waktu 2 Menit & 1 Menit (Bebas Pelanggaran)
+
+Untuk memberikan kesadaran waktu kepada peserta didik tanpa menimbulkan kepanikan:
+
+1. **Notifikasi Sisa Waktu 2 Menit**:
+   - Terpicu saat timer pengerjaan tersisa $\le 120$ detik.
+   - Memunculkan popup amber dengan ikon jam pasir dan nada chime lembut.
+   - Mengingatkan siswa untuk segera meninjau kembali seluruh butir soal yang belum terjawab.
+
+2. **Notifikasi Sisa Waktu 1 Menit**:
+   - Terpicu saat timer pengerjaan tersisa $\le 60$ detik.
+   - Memunculkan popup merah berkedip dengan nada peringatan.
+   - Menginstruksikan siswa agar bersiap menggulir ke bagian bawah Google Form untuk melakukan submit.
+
+3. **Mekanisme Pengecualian Pelanggaran (Zero-Violation Exemption)**:
+   - Saat modal pengingat muncul, status `examState.isReminderActive` aktif dan `examState.ignoreBlurUntil` diperpanjang otomatis.
+   - Seluruh pendengar peristiwa keamanan (`blur`, `visibilitychange`, `fullscreenchange`, dan `heartbeat`) di-bypass sehingga pergerakan fokus atau klik tombol murid dijamin **bebas 100% dari hitungan pelanggaran**.
+   - Setelah notifikasi ditutup (baik melalui tombol konfirmasi maupun *auto-dismiss* 8 detik), fokus dikembalikan ke lembar Google Form disertai buffer toleransi 4 detik.
+
 ---
 
 ## 🗄️ 7. Arsitektur Database Google Spreadsheet (5 Tab Sheet)

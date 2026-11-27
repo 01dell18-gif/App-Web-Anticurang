@@ -261,6 +261,25 @@
 
       <div id="exam-watermark" class="exam-watermark">MODE ANTICURANG</div>
 
+      <!-- Modal Pengingat Sisa Waktu (2 Menit & 1 Menit) - Bebas Pelanggaran -->
+      <div id="exam-time-reminder" class="hidden absolute inset-0 z-25 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 transition-all duration-300">
+        <div id="reminder-card" class="max-w-md w-full bg-white rounded-2xl shadow-2xl border-2 p-5 sm:p-6 text-center transform transition-all">
+          <div id="reminder-icon-wrap" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-3 shadow-inner">
+            <i id="reminder-icon" class="fa-solid fa-hourglass-half"></i>
+          </div>
+          <h3 id="reminder-title" class="text-lg sm:text-xl font-black text-slate-900 mb-1">Pemberitahuan Sisa Waktu</h3>
+          <p id="reminder-message" class="text-xs sm:text-sm text-slate-600 mb-4 leading-relaxed"></p>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-500 mb-4 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-shield-check text-emerald-600"></i>
+            <span>Pemberitahuan resmi • <b>Bebas dari hitungan pelanggaran</b></span>
+          </div>
+          <button type="button" id="reminder-dismiss-btn" onclick="dismissTimeReminder()" class="w-full py-2.5 px-4 rounded-xl text-white font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-check"></i>
+            <span>Mengerti, Lanjutkan Menjawab</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Overlay Pelanggaran / Terkunci -->
       <div id="violation-overlay" class="hidden absolute inset-0 z-30 bg-slate-950/95 backdrop-blur-md text-white flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div class="max-w-md w-full bg-slate-900 border border-red-500/40 rounded-2xl p-6 text-center shadow-2xl">
@@ -319,6 +338,11 @@
       isViolationOverlayOpen: false,
       isFinishModalOpen: false,
       isTimeUpHandled: false,
+      isReminderActive: false,
+      warned2Min: false,
+      warned1Min: false,
+      reminderTimeout: null,
+      startTime: 0,
       ignoreBlurUntil: 0,
       logs: [],
       heartbeatTimer: null,
@@ -929,8 +953,19 @@
       examState.isViolationOverlayOpen = false;
       examState.isFinishModalOpen = false;
       examState.isTimeUpHandled = false;
+      examState.isReminderActive = false;
+      examState.warned2Min = false;
+      examState.warned1Min = false;
+      examState.startTime = Date.now();
+      if (examState.reminderTimeout) {
+        clearTimeout(examState.reminderTimeout);
+        examState.reminderTimeout = null;
+      }
       examState.ignoreBlurUntil = Date.now() + 2000;
       examState.logs = [];
+
+      const reminderEl = document.getElementById('exam-time-reminder');
+      if (reminderEl) reminderEl.classList.add('hidden');
 
       const timeupBanner = document.getElementById('runner-timeup-banner');
       if (timeupBanner) timeupBanner.classList.add('hidden');
@@ -1012,14 +1047,111 @@
         handleExamTimeUp();
         return;
       }
+
+      // Pengingat Sisa Waktu 2 Menit & 1 Menit (Bebas Pelanggaran)
+      const elapsedSinceStart = Date.now() - examState.startTime;
+      if (elapsedSinceStart > 5000 && !examState.isTimeUpHandled) {
+        if (rem <= 120 * 1000 && rem > 60 * 1000 && !examState.warned2Min) {
+          examState.warned2Min = true;
+          showTimeReminder(2);
+        } else if (rem <= 60 * 1000 && rem > 0 && !examState.warned1Min) {
+          examState.warned1Min = true;
+          showTimeReminder(1);
+        }
+      }
+
       pill.textContent = 'Sisa: ' + formatDurationMs(rem);
-      if (rem <= 5 * 60 * 1000) pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-bold bg-red-950 border border-red-500 text-red-200';
-      else if (rem <= 15 * 60 * 1000) pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-bold bg-amber-950 border border-amber-500 text-amber-200';
-      else pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-bold bg-slate-800 border border-slate-700 text-slate-200';
+      if (rem <= 60 * 1000) {
+        pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-black bg-red-600 text-white animate-pulse border border-red-400';
+      } else if (rem <= 2 * 60 * 1000) {
+        pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-black bg-amber-500 text-slate-950 animate-pulse border border-amber-300';
+      } else if (rem <= 5 * 60 * 1000) {
+        pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-bold bg-red-950 border border-red-500 text-red-200';
+      } else if (rem <= 15 * 60 * 1000) {
+        pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-bold bg-amber-950 border border-amber-500 text-amber-200';
+      } else {
+        pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-bold bg-slate-800 border border-slate-700 text-slate-200';
+      }
+    }
+
+    function playChimeBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = 523.25; gain.gain.value = 0.08;
+        osc.connect(gain); gain.connect(ctx.destination); osc.start();
+        setTimeout(function () {
+          try { osc.frequency.setValueAtTime(659.25, ctx.currentTime); } catch (e) {}
+        }, 120);
+        setTimeout(function () { osc.stop(); ctx.close(); }, 280);
+      } catch (e) {}
+    }
+
+    function showTimeReminder(minutesLeft) {
+      if (!examState.active || examState.isTimeUpHandled) return;
+      examState.isReminderActive = true;
+      examState.ignoreBlurUntil = Date.now() + 6000;
+      playChimeBeep();
+
+      const reminderEl = document.getElementById('exam-time-reminder');
+      const cardEl = document.getElementById('reminder-card');
+      const iconWrap = document.getElementById('reminder-icon-wrap');
+      const icon = document.getElementById('reminder-icon');
+      const title = document.getElementById('reminder-title');
+      const msg = document.getElementById('reminder-message');
+      const btn = document.getElementById('reminder-dismiss-btn');
+
+      if (minutesLeft === 2) {
+        if (cardEl) cardEl.className = 'max-w-md w-full bg-white rounded-2xl shadow-2xl border-2 border-amber-400 overflow-hidden transform transition-all p-5 sm:p-6 text-center animate-bounce-short';
+        if (iconWrap) iconWrap.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-3 shadow-inner bg-amber-100 text-amber-600 border border-amber-300';
+        if (icon) icon.className = 'fa-solid fa-hourglass-half';
+        if (title) title.innerHTML = '<span class="text-amber-600">⏰ Sisa Waktu 2 Menit!</span>';
+        if (msg) msg.innerHTML = 'Waktu pengerjaan tersisa <b>2 menit lagi</b>. Mohon segera periksa kembali seluruh jawaban Anda dan pastikan tidak ada soal yang terlewat.';
+        if (btn) {
+          btn.className = 'w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer';
+          btn.innerHTML = '<i class="fa-solid fa-check"></i><span>Mengerti, Lanjutkan Menjawab</span>';
+        }
+      } else {
+        if (cardEl) cardEl.className = 'max-w-md w-full bg-white rounded-2xl shadow-2xl border-2 border-red-500 overflow-hidden transform transition-all p-5 sm:p-6 text-center animate-bounce-short';
+        if (iconWrap) iconWrap.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-3 shadow-inner bg-red-100 text-red-600 border border-red-300 animate-pulse';
+        if (icon) icon.className = 'fa-solid fa-triangle-exclamation';
+        if (title) title.innerHTML = '<span class="text-red-600">🚨 Sisa Waktu Tinggal 1 Menit!</span>';
+        if (msg) msg.innerHTML = 'Waktu ujian tinggal <b>1 menit lagi</b>! Segera bersiap untuk menggulir ke bagian bawah Google Form dan klik tombol <b>Kirim / Submit</b>.';
+        if (btn) {
+          btn.className = 'w-full py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer';
+          btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i><span>Siap, Segera Kirim Jawaban</span>';
+        }
+      }
+
+      if (reminderEl) reminderEl.classList.remove('hidden');
+
+      if (examState.reminderTimeout) clearTimeout(examState.reminderTimeout);
+      examState.reminderTimeout = setTimeout(function () {
+        dismissTimeReminder();
+      }, 8000);
+    }
+
+    function dismissTimeReminder() {
+      if (examState.reminderTimeout) {
+        clearTimeout(examState.reminderTimeout);
+        examState.reminderTimeout = null;
+      }
+      const reminderEl = document.getElementById('exam-time-reminder');
+      if (reminderEl) reminderEl.classList.add('hidden');
+      examState.isReminderActive = false;
+      examState.ignoreBlurUntil = Date.now() + 4000;
+      const iframe = document.getElementById('exam-iframe');
+      if (iframe) {
+        try { iframe.focus(); } catch (e) {}
+      }
     }
 
     async function handleExamTimeUp() {
       if (examState.isTimeUpHandled) return;
+      dismissTimeReminder();
       examState.isTimeUpHandled = true;
       playAlertBeep();
 
@@ -1075,15 +1207,15 @@
         }
       }, true);
       document.addEventListener('visibilitychange', function () {
-        if (examState.active && !examState.isViolationOverlayOpen && document.hidden) {
+        if (examState.active && !examState.isViolationOverlayOpen && !examState.isReminderActive && Date.now() >= examState.ignoreBlurUntil && document.hidden) {
           registerViolation('Berpindah tab atau menyembunyikan layar ujian.');
         }
       });
       const isMobileClient = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
       window.addEventListener('blur', function () {
-        if (!examState.active || examState.isViolationOverlayOpen || Date.now() < examState.ignoreBlurUntil) return;
+        if (!examState.active || examState.isViolationOverlayOpen || examState.isReminderActive || Date.now() < examState.ignoreBlurUntil) return;
         setTimeout(function () {
-          if (!examState.active || examState.isViolationOverlayOpen) return;
+          if (!examState.active || examState.isViolationOverlayOpen || examState.isReminderActive || Date.now() < examState.ignoreBlurUntil) return;
           const activeEl = document.activeElement;
           const inExamFrame = Boolean(activeEl && activeEl.id === 'exam-iframe');
           if (inExamFrame && (document.hasFocus() || (isMobileClient && !document.hidden))) return;
@@ -1092,15 +1224,15 @@
       });
       document.addEventListener('fullscreenchange', function () {
         if (!examState.active || !examState.requireFullscreen || !examState.fullscreenOperational) return;
-        if (Date.now() < examState.ignoreBlurUntil) return;
-        if (!getFullscreenElement() && !examState.isViolationOverlayOpen && !examState.isFinishModalOpen) {
+        if (Date.now() < examState.ignoreBlurUntil || examState.isReminderActive) return;
+        if (!getFullscreenElement() && !examState.isViolationOverlayOpen && !examState.isFinishModalOpen && !examState.isReminderActive) {
           registerViolation('Keluar dari mode Layar Penuh.');
         }
       });
     }
 
     function checkAntiCheatHeartbeat() {
-      if (!examState.active || examState.isViolationOverlayOpen || examState.isFinishModalOpen || Date.now() < examState.ignoreBlurUntil) return;
+      if (!examState.active || examState.isViolationOverlayOpen || examState.isFinishModalOpen || examState.isReminderActive || Date.now() < examState.ignoreBlurUntil) return;
       const isMobileClient = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
       const activeEl = document.activeElement;
       const allowMobileFrameFocus = Boolean(isMobileClient && activeEl && activeEl.id === 'exam-iframe' && !document.hidden);
@@ -1111,7 +1243,7 @@
     }
 
     function registerViolation(reason) {
-      if (!examState.active || examState.isViolationOverlayOpen) return;
+      if (!examState.active || examState.isViolationOverlayOpen || examState.isReminderActive || Date.now() < examState.ignoreBlurUntil) return;
       examState.violations += 1;
       examState.isViolationOverlayOpen = true;
       playAlertBeep();
@@ -1232,9 +1364,16 @@
       examState.isViolationOverlayOpen = false;
       examState.isFinishModalOpen = false;
       examState.isTimeUpHandled = false;
+      examState.isReminderActive = false;
+      if (examState.reminderTimeout) {
+        clearTimeout(examState.reminderTimeout);
+        examState.reminderTimeout = null;
+      }
       clearInterval(examState.countdownTimer);
       clearInterval(examState.heartbeatTimer);
 
+      const reminderEl = document.getElementById('exam-time-reminder');
+      if (reminderEl) reminderEl.classList.add('hidden');
       const timeupBanner = document.getElementById('runner-timeup-banner');
       if (timeupBanner) timeupBanner.classList.add('hidden');
       const runnerFinishBtn = document.getElementById('runner-finish-btn');
