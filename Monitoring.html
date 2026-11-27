@@ -130,7 +130,7 @@
                   <th class="px-4 py-3 font-bold whitespace-nowrap">Status</th>
                   <th class="px-4 py-3 font-bold whitespace-nowrap">Pelanggaran</th>
                   <th class="px-4 py-3 font-bold whitespace-nowrap">Waktu Selesai</th>
-                  <th class="px-4 py-3 font-bold whitespace-nowrap text-right">Aksi</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap text-right w-24">Aksi</th>
                 </tr>
               </thead>
               <tbody id="mon-tbody" class="divide-y divide-slate-100">
@@ -270,10 +270,14 @@
             '<td class="px-4 py-3 whitespace-nowrap"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold ' + badge + '">' + escapeHtml(r.status) + '</span></td>' +
             '<td class="px-4 py-3 whitespace-nowrap">' + violBadge + '</td>' +
             '<td class="px-4 py-3 font-mono text-xs whitespace-nowrap">' + escapeHtml(r.waktuSelesai || '-') + '</td>' +
-            '<td class="px-4 py-3 text-right whitespace-nowrap space-x-1.5">' +
-              '<button type="button" onclick="showMonitoringDetail(\'' + escapeJsAttr(r.sessionId) + '\')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">Log</button>' +
+            '<td class="px-4 py-3 text-right whitespace-nowrap space-x-1">' +
+              '<button type="button" onclick="showMonitoringDetail(\'' + escapeJsAttr(r.sessionId) + '\')" title="Lihat Catatan Log Pelanggaran" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer shadow-2xs">' +
+                '<i class="fa-solid fa-file-lines text-xs"></i>' +
+              '</button>' +
               (globalState.userRole === 'Admin'
-                ? '<button type="button" onclick="confirmClearMonitoring(' + r.rowIndex + ')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700">Hapus</button>'
+                ? '<button type="button" onclick="confirmClearMonitoring(' + r.rowIndex + ')" title="Hapus Log Sesi Ini" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition cursor-pointer shadow-2xs">' +
+                    '<i class="fa-solid fa-trash-can text-xs"></i>' +
+                  '</button>'
                 : '') +
             '</td>' +
           '</tr>'

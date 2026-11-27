@@ -76,7 +76,7 @@ const DEFAULT_PROCTOR_PIN = '654321';
 const DEFAULT_MAX_VIOLATIONS = 3;
 const ADMIN_TOKEN_TTL_SEC = 3600;
 const PUBLIC_CACHE_KEY = 'portal_public_cache_v5';
-const PUBLIC_CACHE_TTL_SEC = 15;
+const PUBLIC_CACHE_TTL_SEC = 60;
 
 const ROUTE_MAP = {
   'portal': 'Portal',
@@ -246,7 +246,6 @@ function getPublicPortalData(forceRefresh) {
     settings = getSettings_(ss);
     rows = readExamRows_(ss, tz);
     muridRows = readMasterMuridRows_(ss);
-    ensureSheetWithHeaders_(ss, SHEET_MONITORING, MONITORING_HEADERS);
     isFirstSetup = !hasCustomAdminPin_() && rows.length === 0;
     try {
       cache.put(PUBLIC_CACHE_KEY, JSON.stringify({
@@ -566,8 +565,6 @@ function getAdminDashboardData(token) {
   const ss = getSpreadsheet_();
   const tz = ss.getSpreadsheetTimeZone() || 'Asia/Singapore';
   const now = new Date();
-  const setSheet = ensureSheetWithHeaders_(ss, SHEET_SETTINGS, SETTINGS_HEADERS);
-  ensurePinColumnsInSheet_(setSheet);
   const settings = getSettings_(ss);
   const config = getSecurityConfig_();
   const monitoring = readMonitoringRows_(ss);
