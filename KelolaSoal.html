@@ -42,7 +42,7 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <input id="excel-import-input" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImportFile(event)">
+            <input id="excel-import-input" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImportFile(event)" title="Unggah Berkas Excel Soal" aria-label="Unggah Berkas Excel Soal">
             <button type="button" onclick="document.getElementById('excel-import-input').click()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-file-import mr-1"></i> Impor Excel
             </button>
@@ -154,7 +154,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Tanggal</label>
-              <input id="exam-tanggal" type="date" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+              <input id="exam-tanggal" type="date" title="Pilih Tanggal Ujian" aria-label="Tanggal Ujian" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Durasi Soal (Menit)</label>
@@ -162,11 +162,11 @@
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Waktu Mulai (Jam Buka)</label>
-              <input id="exam-mulai" type="time" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+              <input id="exam-mulai" type="time" title="Jam Buka Ujian" aria-label="Jam Buka Ujian" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Waktu Selesai (Batas Akhir Buka)</label>
-              <input id="exam-selesai" type="time" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+              <input id="exam-selesai" type="time" title="Batas Akhir Jam Buka Ujian" aria-label="Batas Akhir Jam Buka Ujian" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
             </div>
           </div>
           <p class="text-[11px] text-slate-500">Waktu Mulai & Selesai menentukan kapan soal dapat dibuka dan terakhir dibuka. Durasi pengerjaan berjalan penuh sejak siswa membuka soal meski melewati Waktu Selesai; kosongkan jika fleksibel.</p>

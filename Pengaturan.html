@@ -35,7 +35,7 @@
 
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Nama Sekolah / Instansi</label>
-              <input id="set-nama-sekolah" type="text" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+              <input id="set-nama-sekolah" type="text" required placeholder="Nama Sekolah atau Instansi" title="Nama Sekolah atau Instansi" aria-label="Nama Sekolah atau Instansi" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
             </div>
 
             <!-- Dual-Mode Logo -->
@@ -49,10 +49,10 @@
                 </div>
               </div>
               <div id="logo-mode-url-box">
-                <input id="set-logo-url" type="text" oninput="updatePreviews()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none">
+                <input id="set-logo-url" type="text" oninput="updatePreviews()" placeholder="URL Gambar Logo (Google Drive / Web)" title="URL Gambar Logo" aria-label="URL Gambar Logo" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none">
               </div>
               <div id="logo-mode-file-box" class="hidden">
-                <input id="set-logo-file" type="file" accept="image/*" onchange="handleFilePreview('logo', event)" class="w-full text-xs">
+                <input id="set-logo-file" type="file" accept="image/*" onchange="handleFilePreview('logo', event)" title="Unggah Berkas Gambar Logo" aria-label="Unggah Berkas Gambar Logo" class="w-full text-xs">
               </div>
               <div class="bg-white border border-dashed border-slate-300 rounded-xl p-3 flex justify-center">
                 <img id="preview-logo-img" src="" alt="Preview Logo" class="w-16 h-16 rounded-full object-cover border border-slate-200">
@@ -74,7 +74,7 @@
                   class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none"></textarea>
               </div>
               <div id="kop-mode-file-box" class="hidden">
-                <input id="set-kop-file" type="file" accept="image/*" onchange="handleFilePreview('kop', event)" class="w-full text-xs">
+                <input id="set-kop-file" type="file" accept="image/*" onchange="handleFilePreview('kop', event)" title="Unggah Berkas Gambar Kop Surat" aria-label="Unggah Berkas Gambar Kop Surat" class="w-full text-xs">
               </div>
               <div id="preview-kop-container" class="bg-white border border-dashed border-slate-300 rounded-xl p-3 flex justify-center items-center min-h-[82px]">
                 <img id="preview-kop-img" src="" alt="Preview Kop" class="max-h-24 max-w-full object-contain">
@@ -104,7 +104,7 @@
 
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">Batas Maksimal Pelanggaran</label>
-                <input id="set-max-violations" type="number" min="0" max="20" value="3"
+                <input id="set-max-violations" type="number" min="0" max="20" value="3" placeholder="Batas maksimal pelanggaran (misal: 3)" title="Batas Maksimal Pelanggaran" aria-label="Batas Maksimal Pelanggaran"
                   class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
                 <p class="text-[11px] text-slate-500 mt-1">Jika tercapai, layar soal terkunci dan butuh PIN Pengawas. Isi <code>0</code> untuk peringatan saja.</p>
               </div>

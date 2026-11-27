@@ -41,7 +41,7 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <input id="murid-excel-input" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleMuridExcelImport(event)">
+            <input id="murid-excel-input" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleMuridExcelImport(event)" title="Unggah Berkas Excel Murid" aria-label="Unggah Berkas Excel Murid">
             <button type="button" onclick="document.getElementById('murid-excel-input').click()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-file-import mr-1"></i> Impor Excel
             </button>

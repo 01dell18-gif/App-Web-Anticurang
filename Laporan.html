@@ -46,7 +46,7 @@
                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
               </div>
 
-              <input id="lap-date-filter" type="date" onchange="renderReportDocument()" class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+              <input id="lap-date-filter" type="date" onchange="renderReportDocument()" title="Filter Tanggal Laporan" aria-label="Filter Tanggal Laporan" class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 outline-none">
             </div>
 
             <div class="flex items-center gap-2">
@@ -92,7 +92,7 @@
             <div><b>Instansi / Sekolah:</b> <span id="lap-meta-school">-</span></div>
             <div><b>Filter Mapel / Kelas:</b> <span id="lap-meta-filter">Semua Mapel / Semua Kelas</span></div>
             <div><b>Total Peserta Tercatat:</b> <span id="lap-meta-count">0 Siswa</span></div>
-            <div style="font-size:11px; color:#475569;"><b>Sumber Data:</b> <span id="lap-meta-source">-</span></div>
+            <div class="text-[11px] text-slate-600"><b>Sumber Data:</b> <span id="lap-meta-source">-</span></div>
           </div>
 
           <div class="overflow-x-auto w-full border border-slate-300 rounded-lg">
