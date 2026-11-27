@@ -1,0 +1,42 @@
+<!-- Navbar Atas dengan Greeting Dinamis, Live Clock & Tombol Aksi Icon-Only -->
+<header class="no-print bg-white/95 backdrop-blur border-b border-slate-200 px-4 md:px-6 py-3 flex items-center justify-between gap-3 shrink-0 z-30 shadow-xs">
+  <div class="flex items-center gap-3 min-w-0">
+    <!-- Tombol Hamburger Mobile -->
+    <button type="button" onclick="toggleSidebar()" class="md:hidden w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center shrink-0" aria-label="Buka Menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="min-w-0">
+      <div class="flex items-center gap-2">
+        <h2 class="text-base sm:text-lg font-extrabold text-slate-900 truncate"><?= pageTitle ?></h2>
+        <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Online
+        </span>
+      </div>
+      <div class="text-[11.5px] text-slate-500 truncate flex items-center gap-2 flex-wrap">
+        <span id="header-greeting" class="font-semibold text-brand-700">Selamat Datang</span>
+        <span class="hidden sm:inline text-slate-300">•</span>
+        <span id="header-live-clock" class="font-mono text-slate-600 hidden sm:inline">Memuat jam...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tombol Aksi Cepat Icon-Only -->
+  <div class="flex items-center gap-2 shrink-0">
+    <button id="btn-refresh" type="button" onclick="refreshAllData()" title="Sinkronkan Data dari Spreadsheet"
+      class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-600 text-slate-700 border border-slate-200 flex items-center justify-center transition">
+      <i id="icon-refresh" class="fa-solid fa-rotate text-sm"></i>
+    </button>
+
+    <button id="btn-clear-cache" type="button" onclick="clearAppCache()" title="Bersihkan Cache Web & Kembali ke Beranda"
+      class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-700 border border-slate-200 flex items-center justify-center transition">
+      <i class="fa-solid fa-broom text-sm"></i>
+    </button>
+
+    <button id="btn-auth" type="button" onclick="handleHeaderAuthClick()" title="Masuk / Keluar Admin"
+      class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-xs flex items-center justify-center transition">
+      <i id="icon-auth" class="fa-solid fa-right-to-bracket text-sm"></i>
+    </button>
+  </div>
+</header>

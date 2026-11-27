@@ -1,0 +1,9 @@
+# Credential & OS Temporary Files
+.clasprc.json
+.env
+.env.*
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title><?= initialAppTitle ?> - Laporan & Cetak PDF</title>
+  <?!= include('StyleCSS'); ?>
+</head>
+<body class="bg-slate-50 text-slate-800 flex h-dvh-screen overflow-hidden print-container-reset">
+  <?!= include('Sidebar'); ?>
+
+  <div class="flex-1 flex flex-col h-dvh-screen overflow-hidden w-full print-container-reset">
+    <?!= include('Header', { pageTitle: 'Laporan Pelaksanaan & Cetak PDF' }); ?>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 pb-24 print-container-reset">
+      <!-- Guard Login Admin -->
+      <section id="lap-auth-guard" class="no-print hidden bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 inline-flex items-center justify-center text-2xl mb-3">
+          <i class="fa-solid fa-print"></i>
+        </div>
+        <h3 class="text-lg font-extrabold text-slate-900">Akses Laporan Resmi</h3>
+        <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk menyaring, mencetak PDF, atau mengekspor berita acara monitoring ujian.</p>
+        <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+          <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
+        </button>
+      </section>
+
+      <section id="lap-content" class="hidden space-y-5">
+        <!-- Toolbar Cetak (Hidden Saat Print) -->
+        <div class="no-print bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 w-full">
+            <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[175px]">
+              <input id="lap-mapel-filter" type="text" list="list-lap-mapel" autocomplete="off"
+                placeholder="-- Semua Mapel --" onfocus="this.select()" oninput="renderReportDocument()"
+                class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+              <datalist id="list-lap-mapel"></datalist>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
+            </div>
+
+            <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[165px]">
+              <input id="lap-kelas-filter" type="text" list="list-lap-kelas" autocomplete="off"
+                placeholder="-- Semua Kelas --" onfocus="this.select()" oninput="renderReportDocument()"
+                class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+              <datalist id="list-lap-kelas"></datalist>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
+            </div>
+
+            <input id="lap-date-filter" type="date" onchange="renderReportDocument()" class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="exportReportExcel()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+              <i class="fa-solid fa-file-excel mr-1"></i> Ekspor .xls
+            </button>
+            <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+              <i class="fa-solid fa-print mr-1"></i> Cetak / Simpan PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Lembar Cetak Dinas (Dynamic Adaptive Print & PDF Engine) -->
+        <div class="print-sheet bg-white border border-slate-200 rounded-2xl shadow-sm p-6 md:p-10 max-w-5xl mx-auto">
+          <!-- Smart Kop Divider -->
+          <div id="lap-kop-container"></div>
+
+          <div class="text-center my-4">
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 uppercase tracking-wide">Laporan Monitoring Pelaksanaan Ujian Anticurang</h2>
+            <p id="lap-subtitle" class="text-xs text-slate-600 mt-0.5">Rekap Kehadiran Pengakses Soal & Catatan Pelanggaran</p>
+          </div>
+
+          <!-- Header Metadata dengan Dynamic Source Data Injection -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-4">
+            <div><b>Instansi / Sekolah:</b> <span id="lap-meta-school">-</span></div>
+            <div><b>Filter Mapel / Kelas:</b> <span id="lap-meta-filter">Semua Mapel / Semua Kelas</span></div>
+            <div><b>Total Peserta Tercatat:</b> <span id="lap-meta-count">0 Siswa</span></div>
+            <div style="font-size:11px; color:#475569;"><b>Sumber Data:</b> <span id="lap-meta-source">-</span></div>
+          </div>
+
+          <div class="overflow-x-auto w-full border border-slate-300 rounded-lg">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-100 text-slate-800 border-b border-slate-300">
+                <tr>
+                  <th class="px-3 py-2 border-r border-slate-300">No</th>
+                  <th class="px-3 py-2 border-r border-slate-300">Waktu Akses</th>
+                  <th class="px-3 py-2 border-r border-slate-300">Nama Siswa</th>
+                  <th class="px-3 py-2 border-r border-slate-300">NIS</th>
+                  <th class="px-3 py-2 border-r border-slate-300">Kelas</th>
+                  <th class="px-3 py-2 border-r border-slate-300">Mapel</th>
+                  <th class="px-3 py-2 border-r border-slate-300">Status</th>
+                  <th class="px-3 py-2">Pelanggaran</th>
+                </tr>
+              </thead>
+              <tbody id="lap-tbody" class="divide-y divide-slate-200">
+                <tr><td colspan="8" class="px-4 py-6 text-center text-slate-400">Memuat data laporan...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Document Footer & Tanda Tangan -->
+          <div class="mt-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 text-xs text-slate-600">
+            <div class="space-y-1">
+              <div><b>Sumber Data:</b> <span id="lap-footer-source">-</span></div>
+              <div id="lap-printed-at" class="font-mono text-[11px]">Dicetak pada: -</div>
+            </div>
+            <div class="text-center min-w-[200px]">
+              <div>Pengawas / Koordinator Ujian,</div>
+              <div class="h-16"></div>
+              <div class="font-bold text-slate-900 border-t border-slate-400 pt-1">__________________________</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <?!= include('AppJS'); ?>
+
+  <script>
+    const lapState = { rows: [], settings: null };
+
+    window.onPageReady = async function () {
+      const ok = await ensureAdminAuthenticated();
+      if (!ok) {
+        document.getElementById('lap-auth-guard').classList.remove('hidden');
+        document.getElementById('lap-content').classList.add('hidden');
+        try {
+          const pub = await callServer('getPublicPortalData', false);
+          if (pub && pub.ok) applyGlobalBranding(pub.settings);
+        } catch (e) {}
+        return;
+      }
+      document.getElementById('lap-auth-guard').classList.add('hidden');
+      document.getElementById('lap-content').classList.remove('hidden');
+      await loadReportData();
+    };
+
+    window.onPageRefresh = async function () {
+      if (globalState.adminToken) await loadReportData();
+    };
+
+    async function loadReportData() {
+      const res = await callServer('getAdminDashboardData', globalState.adminToken);
+      if (!res || !res.ok) {
+        if (res && res.authError) { clearAdminSessionStorage(); updateAuthUI(); window.onPageReady(); }
+        return;
+      }
+      applyGlobalBranding(res.settings);
+      lapState.settings = res.settings;
+      lapState.rows = res.monitoring || [];
+
+      populateSelect('lap-mapel-filter', lapState.rows.map(function (r) { return r.mapel; }));
+      populateSelect('lap-kelas-filter', lapState.rows.map(function (r) { return r.kelasSiswa; }));
+      renderReportDocument();
+    }
+
+    function getFilteredReportRows() {
+      const mf = (document.getElementById('lap-mapel-filter').value || '').trim().toLowerCase();
+      const kf = (document.getElementById('lap-kelas-filter').value || '').trim().toLowerCase();
+      const df = document.getElementById('lap-date-filter').value;
+
+      return lapState.rows.filter(function (r) {
+        if (mf && (r.mapel || '').toLowerCase().indexOf(mf) === -1) return false;
+        if (kf && (r.kelasSiswa || '').toLowerCase().indexOf(kf) === -1) return false;
+        if (df && (r.tanggalUjian || '').indexOf(df) === -1 && (r.waktuAkses || '').indexOf(df) === -1) return false;
+        return true;
+      });
+    }
+
+    function renderReportDocument() {
+      const s = lapState.settings || globalState.settings || {};
+      document.getElementById('lap-kop-container').innerHTML = renderSmartKopHtml(s);
+      document.getElementById('lap-meta-school').textContent = s.namaSekolah || '-';
+
+      const srcText = s.sumberData || 'Spreadsheet DB_Anticurang & Log_Monitoring';
+      document.getElementById('lap-meta-source').textContent = srcText;
+      document.getElementById('lap-footer-source').textContent = srcText;
+
+      const mf = document.getElementById('lap-mapel-filter').value.trim() || 'Semua Mapel';
+      const kf = document.getElementById('lap-kelas-filter').value.trim() || 'Semua Kelas';
+      document.getElementById('lap-meta-filter').textContent = mf + ' / ' + kf;
+
+      const list = getFilteredReportRows();
+      document.getElementById('lap-meta-count').textContent = list.length + ' Siswa';
+      document.getElementById('lap-printed-at').textContent = 'Dicetak pada: ' + new Date().toLocaleString('id-ID');
+
+      const tbody = document.getElementById('lap-tbody');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-6 text-center text-slate-400">Tidak ada data laporan sesuai filter.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(function (r, idx) {
+        return (
+          '<tr>' +
+            '<td class="px-3 py-2 border-r border-slate-200 font-mono">' + (idx + 1) + '</td>' +
+            '<td class="px-3 py-2 border-r border-slate-200 font-mono">' + escapeHtml(r.waktuAkses) + '</td>' +
+            '<td class="px-3 py-2 border-r border-slate-200 font-bold">' + escapeHtml(r.namaSiswa) + '</td>' +
+            '<td class="px-3 py-2 border-r border-slate-200 font-mono">' + escapeHtml(r.nis || '-') + '</td>' +
+            '<td class="px-3 py-2 border-r border-slate-200">' + escapeHtml(r.kelasSiswa) + '</td>' +
+            '<td class="px-3 py-2 border-r border-slate-200">' + escapeHtml(r.mapel) + '</td>' +
+            '<td class="px-3 py-2 border-r border-slate-200">' + escapeHtml(r.status) + '</td>' +
+            '<td class="px-3 py-2 font-mono">' + r.pelanggaran + 'x</td>' +
+          '</tr>'
+        );
+      }).join('');
+    }
+
+    function exportReportExcel() {
+      const list = getFilteredReportRows();
+      if (!list.length) { showToast('Data laporan kosong.', 'warning'); return; }
+      const rows = list.map(function (r, idx) {
+        return {
+          'No': idx + 1,
+          'Waktu Akses': r.waktuAkses,
+          'Nama Siswa': r.namaSiswa,
+          'NIS': r.nis || '-',
+          'Kelas': r.kelasSiswa,
+          'Mapel': r.mapel,
+          'Status': r.status,
+          'Pelanggaran': r.pelanggaran,
+          'Waktu Selesai': r.waktuSelesai || '-'
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Laporan_Ujian');
+      XLSX.writeFile(wb, 'Laporan_Ujian_Anticurang_' + todayIsoLocal() + '.xls', { bookType: 'biff8' });
+    }
+  </script>
+</body>
+</html>

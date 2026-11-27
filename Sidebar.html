@@ -1,0 +1,100 @@
+<!-- Backdrop Overlay Mobile Off-Canvas -->
+<div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden md:hidden no-print"></div>
+
+<!-- Off-Canvas Drawer Sidebar Khusus Dashboard Admin -->
+<aside id="app-sidebar" class="no-print fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out z-50 w-72 bg-slate-900 text-slate-100 flex flex-col shrink-0 shadow-2xl">
+  <!-- Direct Home Brand Navigation (Dashboard Admin) -->
+  <div class="p-4 border-b border-slate-800 flex items-center justify-between gap-2">
+    <button type="button" onclick="navigateTo('admin')" class="flex items-center gap-3 text-left group transition transform hover:scale-[1.03] focus:outline-none min-w-0">
+      <img id="sidebar-logo-img" src="" alt="Logo" class="w-10 h-10 rounded-full object-cover bg-white border-2 border-brand-500 shrink-0 shadow">
+      <div class="min-w-0">
+        <div id="sidebar-school-name" class="text-sm font-extrabold text-white truncate">ADMIN PANEL</div>
+        <div class="text-[11px] text-amber-300 font-semibold flex items-center gap-1">
+          <i class="fa-solid fa-user-shield text-[10px]"></i>
+          <span>Dashboard Kontrol</span>
+        </div>
+      </div>
+    </button>
+
+    <button type="button" onclick="toggleSidebar()" class="md:hidden w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center" aria-label="Tutup Menu">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- Role Badge Card -->
+  <div class="px-4 py-3 border-b border-slate-800/80 bg-slate-950/40">
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <span id="sidebar-role-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
+        <span id="sidebar-role-label" class="text-xs font-bold text-slate-200 truncate">Mode Admin</span>
+      </div>
+      <span id="sidebar-role-pill" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-brand-600/30 text-brand-200 border border-brand-500/30">Admin</span>
+    </div>
+  </div>
+
+  <!-- Accordion Menu Groups (Closed-by-Default) -->
+  <nav class="flex-1 overflow-y-auto p-3 space-y-2 text-sm">
+    <!-- Grup 1: Monitoring & Laporan -->
+    <div id="nav-group-monitoring" class="rounded-xl bg-slate-800/40 border border-slate-800 overflow-hidden">
+      <button type="button" onclick="toggleNavGroup('monitoring')" class="w-full px-3.5 py-2.5 flex items-center justify-between text-left font-bold text-slate-200 hover:bg-slate-800/80 transition">
+        <span class="flex items-center gap-2.5">
+          <i class="fa-solid fa-chart-line text-amber-400 w-4 text-center"></i>
+          <span>Monitoring & Laporan</span>
+        </span>
+        <i id="chevron-monitoring" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200 -rotate-90"></i>
+      </button>
+      <div id="submenu-monitoring" class="hidden px-2 pb-2 space-y-1">
+        <button type="button" onclick="navigateTo('admin')" class="nav-link-item w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center gap-2.5 transition <?= currentPage === 'monitoring' ? 'bg-brand-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800' ?>">
+          <i class="fa-solid fa-desktop w-4 text-center"></i>
+          <span>Dashboard Monitoring</span>
+        </button>
+        <button type="button" onclick="navigateTo('laporan')" class="nav-link-item w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center gap-2.5 transition <?= currentPage === 'laporan' ? 'bg-brand-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800' ?>">
+          <i class="fa-solid fa-print w-4 text-center"></i>
+          <span>Laporan & Cetak PDF</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Grup 2: Manajemen & Pengaturan -->
+    <div id="nav-group-admin" class="rounded-xl bg-slate-800/40 border border-slate-800 overflow-hidden">
+      <button type="button" onclick="toggleNavGroup('admin')" class="w-full px-3.5 py-2.5 flex items-center justify-between text-left font-bold text-slate-200 hover:bg-slate-800/80 transition">
+        <span class="flex items-center gap-2.5">
+          <i class="fa-solid fa-sliders text-sky-400 w-4 text-center"></i>
+          <span>Manajemen & Sistem</span>
+        </span>
+        <i id="chevron-admin" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200 -rotate-90"></i>
+      </button>
+      <div id="submenu-admin" class="hidden px-2 pb-2 space-y-1">
+        <button type="button" onclick="navigateTo('kelola-soal')" class="nav-link-item w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center gap-2.5 transition <?= currentPage === 'kelola-soal' ? 'bg-brand-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800' ?>">
+          <i class="fa-solid fa-link w-4 text-center"></i>
+          <span>Kelola Link Soal</span>
+        </button>
+        <button type="button" onclick="navigateTo('data-master')" class="nav-link-item w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center gap-2.5 transition <?= currentPage === 'data-master' ? 'bg-brand-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800' ?>">
+          <i class="fa-solid fa-layer-group w-4 text-center"></i>
+          <span>Data Mapel & Kelas</span>
+        </button>
+        <button type="button" onclick="navigateTo('pengaturan')" class="nav-link-item w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center gap-2.5 transition <?= currentPage === 'pengaturan' ? 'bg-brand-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800' ?>">
+          <i class="fa-solid fa-gear w-4 text-center"></i>
+          <span>Pengaturan Sistem</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pintasan Link Web Publik (Khusus Siswa) -->
+    <div class="rounded-xl bg-slate-800/30 border border-slate-800/80 p-3 space-y-2 mt-3">
+      <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Akses Web Publik Siswa</div>
+      <a href="<?= appUrl ?>" target="_blank" rel="noopener" class="w-full px-3 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-center gap-2 transition">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        <span>Buka Web Publik</span>
+      </a>
+      <button type="button" onclick="copyText(getAppUrl())" class="w-full px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition">
+        <i class="fa-regular fa-copy"></i>
+        <span>Salin Link Web Publik</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="p-3 border-t border-slate-800 text-[11px] text-slate-400 text-center">
+    Dashboard Admin Terpisah<br>DB_Anticurang • Log_Monitoring
+  </div>
+</aside>

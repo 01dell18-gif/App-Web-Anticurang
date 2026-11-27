@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title><?= initialAppTitle ?> - Kelola Link Soal</title>
+  <?!= include('StyleCSS'); ?>
+</head>
+<body class="bg-slate-50 text-slate-800 flex h-dvh-screen overflow-hidden">
+  <?!= include('Sidebar'); ?>
+
+  <div class="flex-1 flex flex-col h-dvh-screen overflow-hidden w-full">
+    <?!= include('Header', { pageTitle: 'Kelola Link Soal (DB_Anticurang)' }); ?>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 pb-24">
+      <!-- Guard Login Admin -->
+      <section id="ks-auth-guard" class="hidden bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 inline-flex items-center justify-center text-2xl mb-3">
+          <i class="fa-solid fa-link"></i>
+        </div>
+        <h3 class="text-lg font-extrabold text-slate-900">Akses Manajemen Link Soal</h3>
+        <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk menambah, mengubah, mengimpor Excel, atau menguji link Google Form.</p>
+        <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+          <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
+        </button>
+      </section>
+
+      <section id="ks-content" class="hidden space-y-5">
+        <!-- Toolbar -->
+        <div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 w-full">
+            <input id="ks-search" type="text" oninput="renderExamsTable()" placeholder="Cari Mapel / Kelas / Link..."
+              class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none w-full sm:w-auto sm:min-w-[200px]">
+
+            <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[165px]">
+              <input id="ks-kelas-filter" type="text" list="list-ks-kelas" autocomplete="off"
+                placeholder="-- Semua Kelas --" onfocus="this.select()" oninput="renderExamsTable()"
+                class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+              <datalist id="list-ks-kelas"></datalist>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <input id="excel-import-input" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImportFile(event)">
+            <button type="button" onclick="document.getElementById('excel-import-input').click()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+              <i class="fa-solid fa-file-import mr-1"></i> Impor Excel
+            </button>
+            <button type="button" onclick="exportExamsExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+              <i class="fa-solid fa-file-excel mr-1"></i> Ekspor .xls
+            </button>
+            <a id="ks-sheet-link" href="#" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+              <i class="fa-solid fa-table mr-1"></i> Google Sheet
+            </a>
+            <button type="button" onclick="navigateTo('data-master')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+              <i class="fa-solid fa-layer-group mr-1"></i> Mapel &amp; Kelas
+            </button>
+            <button type="button" onclick="openExamFormModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+              <i class="fa-solid fa-plus mr-1"></i> Tambah Link Form
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabel Horisontal Adaptif -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                <tr>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">No</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">Mapel</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">Kelas</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">Link GFrom</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">Hari & Tanggal</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">Buka - Tutup</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">Durasi</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap">Status</th>
+                  <th class="px-4 py-3 font-bold whitespace-nowrap text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="ks-tbody" class="divide-y divide-slate-100">
+                <tr><td colspan="9" class="px-4 py-8 text-center text-slate-400">Memuat data DB_Anticurang...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: Tambah / Edit Link Soal -->
+  <div id="modal-exam-form" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl max-w-lg w-full shadow-2xl overflow-y-auto max-h-[92dvh]">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 id="exam-modal-title" class="font-extrabold text-slate-900">Tambah Link Google Form</h3>
+        <button type="button" onclick="closeExamFormModal()" class="text-slate-400 hover:text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="submitExamForm(event)">
+        <div class="p-5 space-y-3.5 max-h-[75vh] overflow-y-auto">
+          <input id="exam-row-index" type="hidden">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">No (Opsional)</label>
+              <input id="exam-no" type="text" placeholder="Otomatis" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+            </div>
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <label class="block text-xs font-bold text-slate-600">Kelas <span class="text-red-600">*</span></label>
+                <button type="button" onclick="navigateTo('data-master')" class="text-[11px] font-bold text-brand-600 hover:underline">+ Kelola Kelas</button>
+              </div>
+              <select id="exam-kelas" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="">-- Pilih Kelas --</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <label class="block text-xs font-bold text-slate-600">Mata Pelajaran (Mapel) <span class="text-red-600">*</span></label>
+              <button type="button" onclick="navigateTo('data-master')" class="text-[11px] font-bold text-brand-600 hover:underline">+ Kelola Mapel</button>
+            </div>
+            <select id="exam-mapel" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="">-- Pilih Mata Pelajaran --</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Link Google Form (Link GFrom) <span class="text-red-600">*</span></label>
+            <div class="flex gap-2">
+              <input id="exam-link" type="text" required oninput="checkExamLinkHint()" placeholder="https://docs.google.com/forms/d/e/.../viewform"
+                class="flex-1 text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+              <button type="button" onclick="previewLinkFromModal()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200">Uji Form</button>
+            </div>
+            <div id="exam-link-hint" class="text-[11px] text-slate-500 mt-1">Gunakan URL responden Google Form (<code>viewform</code> atau <code>forms.gle</code>).</div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Tanggal</label>
+              <input id="exam-tanggal" type="date" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Durasi Soal (Menit - Kolom H)</label>
+              <input id="exam-durasi" type="number" min="0" max="1440" placeholder="Misal: 30 (kosong = fleksibel)" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Waktu Mulai (Jam Buka)</label>
+              <input id="exam-mulai" type="time" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Waktu Selesai (Batas Akhir Buka)</label>
+              <input id="exam-selesai" type="time" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500">Waktu Mulai & Selesai menentukan kapan soal dapat dibuka dan terakhir dibuka. Durasi pengerjaan (kolom H) berjalan penuh sejak siswa membuka soal meski melewati Waktu Selesai; kosongkan jika fleksibel.</p>
+        </div>
+        <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="closeExamFormModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white">Batal</button>
+          <button id="btn-save-exam" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan ke DB_Anticurang</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Pratinjau Google Form -->
+  <div id="modal-preview-form" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden flex flex-col h-[82vh]">
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+        <h3 id="preview-modal-title" class="font-extrabold text-slate-900 text-sm">Pratinjau Google Form</h3>
+        <button type="button" onclick="closePreviewModal()" class="text-slate-400 hover:text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="preview-embed-url-bar" class="px-4 py-2 bg-slate-50 border-b border-slate-200 font-mono text-[11px] text-slate-500 truncate"></div>
+      <iframe id="admin-preview-iframe" class="flex-1 w-full border-0 bg-white" title="Pratinjau Google Form"></iframe>
+    </div>
+  </div>
+
+  <?!= include('AppJS'); ?>
+
+  <script>
+    const ksState = { exams: [], masterMapel: [], masterKelas: [] };
+
+    window.onPageReady = async function () {
+      const auth = await ensureAdminAuthenticated(true);
+      if (auth !== true) {
+        document.getElementById('ks-auth-guard').classList.remove('hidden');
+        document.getElementById('ks-content').classList.add('hidden');
+        if (auth === 'forbidden_role') {
+          document.querySelector('#ks-auth-guard h3').textContent = 'Akses Khusus Administrator';
+          document.querySelector('#ks-auth-guard p').textContent = 'Anda saat ini login sebagai Pengawas Ruang. Hanya Admin yang dapat mengelola link soal DB_Anticurang.';
+        }
+        try {
+          const pub = await callServer('getPublicPortalData', false);
+          if (pub && pub.ok) { globalState.isFirstTimeSetup = Boolean(pub.isFirstTimeSetup); applyGlobalBranding(pub.settings); }
+        } catch (e) {}
+        return;
+      }
+      document.getElementById('ks-auth-guard').classList.add('hidden');
+      document.getElementById('ks-content').classList.remove('hidden');
+      await loadExamsAdminData();
+    };
+
+    window.onPageRefresh = async function () {
+      if (globalState.adminToken) await loadExamsAdminData();
+    };
+
+    async function loadExamsAdminData() {
+      const res = await callServer('getAdminDashboardData', globalState.adminToken);
+      if (!res || !res.ok) {
+        if (res && res.authError) { clearAdminSessionStorage(); updateAuthUI(); window.onPageReady(); }
+        return;
+      }
+      globalState.serverOffsetMs = res.serverNowMs - Date.now();
+      applyGlobalBranding(res.settings);
+      ksState.exams = res.exams || [];
+      ksState.masterMapel = res.masterMapel || [];
+      ksState.masterKelas = res.masterKelas || [];
+      if (res.spreadsheetUrl) document.getElementById('ks-sheet-link').href = res.spreadsheetUrl;
+
+      const filterKelasList = ksState.masterKelas.map(function (k) { return k.kelas; }).concat(ksState.exams.map(function (e) { return e.kelas; }));
+      populateSelect('ks-kelas-filter', filterKelasList, null, true);
+      syncExamFormSelectOptions('', '');
+      renderExamsTable();
+    }
+
+    function syncExamFormSelectOptions(selectedMapel, selectedKelas) {
+      const mapelItems = ksState.masterMapel.map(function (m) { return m.namaMapel; });
+      const kelasItems = ksState.masterKelas.map(function (k) { return k.kelas; });
+
+      populateSelect(
+        'exam-mapel',
+        mapelItems,
+        mapelItems.length ? '-- Pilih Mata Pelajaran --' : '-- Belum ada data di DB_Mapel --',
+        true
+      );
+      populateSelect(
+        'exam-kelas',
+        kelasItems,
+        kelasItems.length ? '-- Pilih Kelas --' : '-- Belum ada data di DB_Kelas --',
+        true
+      );
+
+      ensureLegacySelectOption('exam-mapel', selectedMapel);
+      ensureLegacySelectOption('exam-kelas', selectedKelas);
+    }
+
+    function ensureLegacySelectOption(selectId, val) {
+      const sel = document.getElementById(selectId);
+      const cleanVal = String(val || '').trim();
+      if (!sel) return;
+      if (!cleanVal) {
+        sel.value = '';
+        return;
+      }
+      const exists = Array.prototype.some.call(sel.options, function (opt) { return opt.value === cleanVal; });
+      if (!exists) {
+        const opt = document.createElement('option');
+        opt.value = cleanVal;
+        opt.textContent = cleanVal + ' (Data Lama)';
+        sel.appendChild(opt);
+      }
+      sel.value = cleanVal;
+    }
+
+    function renderExamsTable() {
+      const tbody = document.getElementById('ks-tbody');
+      const q = (document.getElementById('ks-search').value || '').trim().toLowerCase();
+      const kf = (document.getElementById('ks-kelas-filter').value || '').trim().toLowerCase();
+
+      const list = ksState.exams.filter(function (ex) {
+        if (kf && (ex.kelas || '').toLowerCase().indexOf(kf) === -1) return false;
+        if (q && (ex.mapel + ' ' + ex.kelas + ' ' + ex.link).toLowerCase().indexOf(q) === -1) return false;
+        return true;
+      });
+
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-slate-400">Belum ada link soal di Sheet DB_Anticurang.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(function (ex) {
+        const badge = ex.status === 'active' ? 'bg-emerald-50 text-emerald-700' : (ex.status === 'upcoming' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600');
+        const jam = (ex.waktuMulai || ex.waktuSelesai) ? ((ex.waktuMulai || '--:--') + ' - ' + (ex.waktuSelesai || '--:--')) : 'Fleksibel';
+        const durasiHtml = (ex.durasiMenit && ex.durasiMenit > 0)
+          ? '<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">' + ex.durasiMenit + ' Menit</span>'
+          : '<span class="text-xs text-slate-400">Fleksibel</span>';
+        const warn = ex.isEditLink
+          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700">/edit!</span>'
+          : (ex.isSuspiciousLink ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700">Cek Link!</span>' : '');
+
+        return (
+          '<tr class="hover:bg-slate-50/80">' +
+            '<td class="px-4 py-3 font-mono font-bold whitespace-nowrap">' + escapeHtml(ex.no) + '</td>' +
+            '<td class="px-4 py-3 font-bold text-slate-900 whitespace-nowrap">' + escapeHtml(ex.mapel) + '</td>' +
+            '<td class="px-4 py-3 whitespace-nowrap"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-50 text-brand-700">' + escapeHtml(ex.kelas) + '</span></td>' +
+            '<td class="px-4 py-3 whitespace-nowrap">' +
+              '<div class="flex items-center gap-1.5">' +
+                '<span class="px-2 py-1 rounded bg-slate-100 font-mono text-[11px] max-w-[200px] truncate" title="' + escapeHtml(ex.link) + '">' + escapeHtml(ex.link) + '</span>' +
+                warn +
+                '<button type="button" onclick="previewUrl(\'' + escapeJsAttr(ex.link) + '\', \'' + escapeJsAttr(ex.mapel) + '\')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold">Uji</button>' +
+                '<button type="button" onclick="copyText(\'' + escapeJsAttr(ex.link) + '\')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold">Salin</button>' +
+              '</div>' +
+            '</td>' +
+            '<td class="px-4 py-3 whitespace-nowrap">' + escapeHtml(ex.hariLabel) + '</td>' +
+            '<td class="px-4 py-3 font-mono whitespace-nowrap">' + escapeHtml(jam) + '</td>' +
+            '<td class="px-4 py-3 whitespace-nowrap">' + durasiHtml + '</td>' +
+            '<td class="px-4 py-3 whitespace-nowrap"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold ' + badge + '">' + escapeHtml(ex.statusLabel) + '</span></td>' +
+            '<td class="px-4 py-3 text-right whitespace-nowrap space-x-1.5">' +
+              '<button type="button" onclick="openExamFormModal(' + ex.rowIndex + ')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold">Edit</button>' +
+              '<button type="button" onclick="confirmDeleteExam(' + ex.rowIndex + ')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700">Hapus</button>' +
+            '</td>' +
+          '</tr>'
+        );
+      }).join('');
+    }
+
+    function openExamFormModal(rowIndex) {
+      const isEdit = Boolean(rowIndex);
+      document.getElementById('exam-modal-title').textContent = isEdit ? 'Edit Link Google Form' : 'Tambah Link Google Form';
+      if (isEdit) {
+        const ex = ksState.exams.find(function (item) { return item.rowIndex === rowIndex; });
+        if (!ex) return;
+        document.getElementById('exam-row-index').value = ex.rowIndex;
+        document.getElementById('exam-no').value = ex.no;
+        document.getElementById('exam-link').value = ex.link;
+        document.getElementById('exam-tanggal').value = ex.tanggal || '';
+        document.getElementById('exam-mulai').value = ex.waktuMulai || '';
+        document.getElementById('exam-selesai').value = ex.waktuSelesai || '';
+        document.getElementById('exam-durasi').value = (ex.durasiMenit && ex.durasiMenit > 0) ? String(ex.durasiMenit) : '';
+        syncExamFormSelectOptions(ex.mapel, ex.kelas);
+      } else {
+        document.getElementById('exam-row-index').value = '';
+        document.getElementById('exam-no').value = '';
+        document.getElementById('exam-link').value = '';
+        document.getElementById('exam-tanggal').value = todayIsoLocal();
+        document.getElementById('exam-mulai').value = '07:30';
+        document.getElementById('exam-selesai').value = '09:30';
+        document.getElementById('exam-durasi').value = '';
+        syncExamFormSelectOptions('', '');
+      }
+      checkExamLinkHint();
+      document.getElementById('modal-exam-form').classList.remove('hidden');
+    }
+
+    function closeExamFormModal() {
+      document.getElementById('modal-exam-form').classList.add('hidden');
+    }
+
+    function checkExamLinkHint() {
+      const val = (document.getElementById('exam-link').value || '').trim();
+      const hint = document.getElementById('exam-link-hint');
+      if (!val) { hint.className = 'text-[11px] text-slate-500 mt-1'; hint.textContent = 'Gunakan URL responden Google Form (viewform atau forms.gle).'; return; }
+      if (/\/forms\/d\/[^/]+\/edit/i.test(val)) { hint.className = 'text-[11px] text-amber-600 mt-1'; hint.textContent = 'Link masih URL /edit; disarankan pakai link Kirim (/viewform).'; }
+      else if (/forms\.gle\/|docs\.google\.com\/forms\//i.test(val)) { hint.className = 'text-[11px] text-emerald-600 mt-1'; hint.textContent = 'Format URL Google Form valid.'; }
+      else { hint.className = 'text-[11px] text-amber-600 mt-1'; hint.textContent = 'Pastikan URL mengarah ke Google Form (docs.google.com/forms/... atau forms.gle/...).'; }
+    }
+
+    async function submitExamForm(e) {
+      e.preventDefault();
+      const payload = {
+        rowIndex: document.getElementById('exam-row-index').value ? Number(document.getElementById('exam-row-index').value) : null,
+        no: document.getElementById('exam-no').value.trim(),
+        mapel: document.getElementById('exam-mapel').value.trim(),
+        kelas: document.getElementById('exam-kelas').value.trim(),
+        link: document.getElementById('exam-link').value.trim(),
+        tanggal: document.getElementById('exam-tanggal').value,
+        waktuMulai: document.getElementById('exam-mulai').value,
+        waktuSelesai: document.getElementById('exam-selesai').value,
+        durasiMenit: document.getElementById('exam-durasi').value.trim()
+      };
+      const btn = document.getElementById('btn-save-exam');
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+      try {
+        const res = await callServer('saveExamRecord', globalState.adminToken, payload);
+        if (!res || !res.ok) { showToast((res && res.message) || 'Gagal menyimpan.', 'error'); return; }
+        closeExamFormModal();
+        showToast(res.message, 'success');
+        await loadExamsAdminData();
+      } catch (err) {
+        showToast('Error: ' + (err.message || err), 'error');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Simpan ke DB_Anticurang';
+      }
+    }
+
+    async function confirmDeleteExam(rowIndex) {
+      const ex = ksState.exams.find(function (item) { return item.rowIndex === rowIndex; });
+      if (!ex) return;
+      const res = await Swal.fire({
+        title: 'Hapus Link Soal?',
+        text: 'Hapus "' + ex.mapel + ' (' + ex.kelas + ')" dari Sheet DB_Anticurang?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+      });
+      if (!res.isConfirmed) return;
+      const out = await callServer('deleteExamRecord', globalState.adminToken, rowIndex);
+      if (out && out.ok) { showToast(out.message, 'success'); await loadExamsAdminData(); }
+      else showToast((out && out.message) || 'Gagal menghapus.', 'error');
+    }
+
+    function previewLinkFromModal() {
+      const url = document.getElementById('exam-link').value.trim();
+      if (url) previewUrl(url, 'Pratinjau Link Soal');
+    }
+
+    async function previewUrl(rawUrl, title) {
+      const res = await callServer('testNormalizeFormUrl', globalState.adminToken, rawUrl);
+      if (!res || !res.ok) { showToast((res && res.message) || 'URL tidak valid.', 'error'); return; }
+      document.getElementById('preview-modal-title').textContent = 'Pratinjau: ' + (title || '');
+      document.getElementById('preview-embed-url-bar').textContent = res.embedUrl;
+      document.getElementById('admin-preview-iframe').src = res.embedUrl;
+      document.getElementById('modal-preview-form').classList.remove('hidden');
+    }
+
+    function closePreviewModal() {
+      document.getElementById('admin-preview-iframe').src = 'about:blank';
+      document.getElementById('modal-preview-form').classList.add('hidden');
+    }
+
+    /* SheetJS Export & Import */
+    function exportExamsExcel() {
+      if (!ksState.exams.length) { showToast('Belum ada data.', 'warning'); return; }
+      const rows = ksState.exams.map(function (ex) {
+        return {
+          'No': ex.no,
+          'Mapel': ex.mapel,
+          'Kelas': ex.kelas,
+          'Link GFrom': ex.link,
+          'Tanggal': ex.tanggal,
+          'Waktu Mulai': ex.waktuMulai,
+          'Waktu Selesai': ex.waktuSelesai,
+          'Durasi (Menit)': ex.durasiMenit > 0 ? ex.durasiMenit : ''
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'DB_Anticurang');
+      XLSX.writeFile(wb, 'DB_Anticurang_' + todayIsoLocal() + '.xls', { bookType: 'biff8' });
+    }
+
+    function handleExcelImportFile(e) {
+      const file = e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function (evt) {
+        try {
+          const wb = XLSX.read(new Uint8Array(evt.target.result), { type: 'array' });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          const rawJson = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+          const mapped = rawJson.map(function (r) {
+            return {
+              no: String(r['No'] || r['no'] || '').trim(),
+              mapel: String(r['Mapel'] || r['mapel'] || '').trim(),
+              kelas: String(r['Kelas'] || r['kelas'] || '').trim(),
+              link: String(r['Link GFrom'] || r['Link GForm'] || r['link'] || '').trim(),
+              tanggal: String(r['Tanggal'] || r['tanggal'] || '').trim(),
+              waktuMulai: String(r['Waktu Mulai'] || r['waktuMulai'] || '').trim(),
+              waktuSelesai: String(r['Waktu Selesai'] || r['waktuSelesai'] || '').trim(),
+              durasiMenit: String(r['Durasi (Menit)'] || r['Durasi'] || r['Durasi Soal'] || r['durasiMenit'] || r['durasi'] || '').trim()
+            };
+          }).filter(function (x) { return x.mapel && x.kelas && x.link; });
+
+          if (!mapped.length) {
+            Swal.fire('Format Tidak Cocok', 'Pastikan header Excel memiliki kolom: Mapel, Kelas, Link GFrom (opsional: No, Tanggal, Waktu Mulai, Waktu Selesai, Durasi (Menit)).', 'warning');
+            return;
+          }
+
+          const ask = await Swal.fire({
+            title: 'Impor ' + mapped.length + ' Link Soal?',
+            text: 'Pilih apakah ingin menambahkan ke daftar yang sudah ada atau mengganti seluruh isi DB_Anticurang.',
+            icon: 'question',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Tambahkan',
+            denyButtonText: 'Timpa Semua',
+            cancelButtonText: 'Batal'
+          });
+          if (ask.isDismissed) return;
+
+          const out = await callServer('importExamsFromExcel', globalState.adminToken, mapped, Boolean(ask.isDenied));
+          if (out && out.ok) { showToast(out.message, 'success'); await loadExamsAdminData(); }
+          else Swal.fire('Gagal Impor', (out && out.message) || 'Terjadi kesalahan.', 'error');
+        } catch (err) {
+          Swal.fire('Gagal Membaca Excel', String(err.message || err), 'error');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  </script>
+</body>
+</html>

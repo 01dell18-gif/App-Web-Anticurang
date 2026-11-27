@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title><?= initialAppTitle ?> - Pengaturan Sistem</title>
+  <?!= include('StyleCSS'); ?>
+</head>
+<body class="bg-slate-50 text-slate-800 flex h-dvh-screen overflow-hidden">
+  <?!= include('Sidebar'); ?>
+
+  <div class="flex-1 flex flex-col h-dvh-screen overflow-hidden w-full">
+    <?!= include('Header', { pageTitle: 'Pengaturan Sekolah, Kop Drive & Keamanan' }); ?>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 pb-24">
+      <!-- Guard Login Admin -->
+      <section id="set-auth-guard" class="hidden bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 inline-flex items-center justify-center text-2xl mb-3">
+          <i class="fa-solid fa-gear"></i>
+        </div>
+        <h3 class="text-lg font-extrabold text-slate-900">Pengaturan Sistem (Khusus Admin)</h3>
+        <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk mengubah Identitas Sekolah, Logo, Kop, Folder Drive, atau batas pelanggaran.</p>
+        <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+          <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
+        </button>
+      </section>
+
+      <section id="set-content" class="hidden">
+        <form onsubmit="submitSettingsForm(event)" class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Kolom Kiri: Identitas, Logo & Dual-Mode Kop Ingestion -->
+          <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+            <h3 class="text-sm font-extrabold text-slate-900 border-b border-slate-100 pb-3">
+              <i class="fa-solid fa-school text-brand-600 mr-1.5"></i> Identitas Web & Kop Surat (Sheet: Pengaturan)
+            </h3>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Nama Sekolah / Instansi</label>
+              <input id="set-nama-sekolah" type="text" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+            </div>
+
+            <!-- Dual-Mode Logo -->
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <label class="text-xs font-bold text-slate-700">Logo Web</label>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="setLogoMode('url')" id="btn-logo-mode-url" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white">Mode URL</button>
+                  <button type="button" onclick="setLogoMode('file')" id="btn-logo-mode-file" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Unggah Gambar</button>
+                  <button type="button" onclick="resetSingleDefault('logo')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Default</button>
+                </div>
+              </div>
+              <div id="logo-mode-url-box">
+                <input id="set-logo-url" type="text" oninput="updatePreviews()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none">
+              </div>
+              <div id="logo-mode-file-box" class="hidden">
+                <input id="set-logo-file" type="file" accept="image/*" onchange="handleFilePreview('logo', event)" class="w-full text-xs">
+              </div>
+              <div class="bg-white border border-dashed border-slate-300 rounded-xl p-3 flex justify-center">
+                <img id="preview-logo-img" src="" alt="Preview Logo" class="w-16 h-16 rounded-full object-cover border border-slate-200">
+              </div>
+            </div>
+
+            <!-- Dual-Mode Kop Surat (Section 8.D) -->
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <label class="text-xs font-bold text-slate-700">Kop Web / Kop Laporan</label>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="setKopMode('url')" id="btn-kop-mode-url" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white">Mode URL / Teks</button>
+                  <button type="button" onclick="setKopMode('file')" id="btn-kop-mode-file" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Unggah Gambar</button>
+                  <button type="button" onclick="resetSingleDefault('kop')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Default</button>
+                </div>
+              </div>
+              <div id="kop-mode-url-box">
+                <textarea id="set-kop-url" rows="2" oninput="updatePreviews()" placeholder="Masukkan URL gambar Drive / PNG atau teks Kop instansi..."
+                  class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none"></textarea>
+              </div>
+              <div id="kop-mode-file-box" class="hidden">
+                <input id="set-kop-file" type="file" accept="image/*" onchange="handleFilePreview('kop', event)" class="w-full text-xs">
+              </div>
+              <div id="preview-kop-container" class="bg-white border border-dashed border-slate-300 rounded-xl p-3 flex justify-center items-center min-h-[82px]">
+                <img id="preview-kop-img" src="" alt="Preview Kop" class="max-h-24 max-w-full object-contain">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Folder ID Google Drive (Opsional)</label>
+                <input id="set-folder-drive" type="text" placeholder="ID / URL Folder Drive untuk unggahan"
+                  class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Sumber Data Cetak Laporan</label>
+                <input id="set-sumber-data" type="text" placeholder="Spreadsheet DB_Anticurang & Log_Monitoring"
+                  class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- Kolom Kanan: Keamanan & Anticurang -->
+          <div class="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4 flex flex-col justify-between">
+            <div class="space-y-4">
+              <h3 class="text-sm font-extrabold text-slate-900 border-b border-slate-100 pb-3">
+                <i class="fa-solid fa-shield-halved text-brand-600 mr-1.5"></i> Keamanan & Anticurang
+              </h3>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Batas Maksimal Pelanggaran</label>
+                <input id="set-max-violations" type="number" min="0" max="20" value="3"
+                  class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+                <p class="text-[11px] text-slate-500 mt-1">Jika tercapai, layar soal terkunci dan butuh PIN Pengawas. Isi <code>0</code> untuk peringatan saja.</p>
+              </div>
+
+              <label class="flex items-center gap-2.5 text-xs font-semibold text-slate-700 cursor-pointer p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <input id="set-require-fullscreen" type="checkbox" checked class="w-4 h-4 rounded text-brand-600">
+                <span>Wajibkan Mode Layar Penuh (Fullscreen) saat siswa membuka soal</span>
+              </label>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">PIN Login & Buka Kunci Pengawas (Di Database)</label>
+                <div class="flex gap-2">
+                  <input id="set-pin-pengawas" type="text" required minlength="4" placeholder="PIN untuk pengawas ruang..."
+                    class="flex-1 text-sm font-mono font-bold px-3 py-2 border border-slate-300 rounded-xl outline-none">
+                  <button type="button" onclick="generateRandomProctorPin()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200">Acak PIN</button>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">Tersimpan langsung di Sheet <code>Pengaturan</code> kolom <b>PIN Pengawas</b> (bisa diubah kapan saja di sini maupun langsung di Spreadsheet). Dipakai untuk login Pengawas di Dashboard Monitoring serta buka kunci layar siswa.</p>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">PIN Login Admin (Di Database)</label>
+                <div class="flex gap-2">
+                  <input id="set-pin-admin" type="password" required minlength="4" placeholder="PIN Login Admin..."
+                    class="flex-1 text-sm font-mono font-bold px-3 py-2 border border-slate-300 rounded-xl outline-none">
+                  <button type="button" onclick="toggleAdminPinVisibility()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200" title="Tampilkan / Sembunyikan PIN">
+                    <i id="icon-eye-admin-pin" class="fa-regular fa-eye"></i>
+                  </button>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">Tersimpan langsung di Sheet <code>Pengaturan</code> kolom <b>PIN Admin</b> (minimal 4 karakter). Dapat diubah di sini atau langsung di sel Spreadsheet.</p>
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 flex-wrap">
+              <button type="button" onclick="resetAllDefaults()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50">
+                Reset Default URL
+              </button>
+              <button id="btn-save-settings" type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+                <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Pengaturan
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <?!= include('AppJS'); ?>
+
+  <script>
+    const setState = {
+      logoMode: 'url',
+      kopMode: 'url',
+      logoBase64: '',
+      kopBase64: '',
+      defaults: { logo: DEFAULT_LOGO_URL, kop: DEFAULT_KOP_URL }
+    };
+
+    window.onPageReady = async function () {
+      const auth = await ensureAdminAuthenticated(true);
+      if (auth !== true) {
+        document.getElementById('set-auth-guard').classList.remove('hidden');
+        document.getElementById('set-content').classList.add('hidden');
+        if (auth === 'forbidden_role') {
+          document.querySelector('#set-auth-guard h3').textContent = 'Akses Khusus Administrator';
+          document.querySelector('#set-auth-guard p').textContent = 'Anda saat ini login sebagai Pengawas Ruang. Hanya Admin yang dapat mengubah Pengaturan Sistem.';
+        }
+        try {
+          const pub = await callServer('getPublicPortalData', false);
+          if (pub && pub.ok) { globalState.isFirstTimeSetup = Boolean(pub.isFirstTimeSetup); applyGlobalBranding(pub.settings); }
+        } catch (e) {}
+        return;
+      }
+      document.getElementById('set-auth-guard').classList.add('hidden');
+      document.getElementById('set-content').classList.remove('hidden');
+      await loadSettingsData();
+    };
+
+    window.onPageRefresh = async function () {
+      if (globalState.adminToken) await loadSettingsData();
+    };
+
+    async function loadSettingsData() {
+      const res = await callServer('getAdminDashboardData', globalState.adminToken);
+      if (!res || !res.ok) {
+        if (res && res.authError) { clearAdminSessionStorage(); updateAuthUI(); window.onPageReady(); }
+        return;
+      }
+      applyGlobalBranding(res.settings);
+      setState.defaults = res.defaults || setState.defaults;
+      const s = res.settings || {};
+      document.getElementById('set-nama-sekolah').value = s.namaSekolah || '';
+      document.getElementById('set-logo-url').value = s.logoRaw || setState.defaults.logo;
+      document.getElementById('set-kop-url').value = s.kopRaw || setState.defaults.kop;
+      document.getElementById('set-folder-drive').value = s.folderIdDrive || '';
+      document.getElementById('set-sumber-data').value = s.sumberData || '';
+      if (res.security) {
+        document.getElementById('set-max-violations').value = res.security.maxViolations;
+        document.getElementById('set-require-fullscreen').checked = Boolean(res.security.requireFullscreen);
+      }
+      document.getElementById('set-pin-pengawas').value = s.pinPengawas || '654321';
+      document.getElementById('set-pin-admin').value = s.pinAdmin || '123456';
+      setState.logoBase64 = '';
+      setState.kopBase64 = '';
+      updatePreviews();
+    }
+
+    function setLogoMode(mode) {
+      setState.logoMode = mode;
+      document.getElementById('logo-mode-url-box').classList.toggle('hidden', mode !== 'url');
+      document.getElementById('logo-mode-file-box').classList.toggle('hidden', mode !== 'file');
+      document.getElementById('btn-logo-mode-url').className = mode === 'url' ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white' : 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600';
+      document.getElementById('btn-logo-mode-file').className = mode === 'file' ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white' : 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600';
+      if (mode === 'url') { setState.logoBase64 = ''; updatePreviews(); }
+    }
+
+    function setKopMode(mode) {
+      setState.kopMode = mode;
+      document.getElementById('kop-mode-url-box').classList.toggle('hidden', mode !== 'url');
+      document.getElementById('kop-mode-file-box').classList.toggle('hidden', mode !== 'file');
+      document.getElementById('btn-kop-mode-url').className = mode === 'url' ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white' : 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600';
+      document.getElementById('btn-kop-mode-file').className = mode === 'file' ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white' : 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600';
+      if (mode === 'url') { setState.kopBase64 = ''; updatePreviews(); }
+    }
+
+    function handleFilePreview(target, e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        const dataUrl = evt.target.result;
+        if (target === 'logo') {
+          setState.logoBase64 = dataUrl;
+          document.getElementById('preview-logo-img').src = dataUrl;
+        } else {
+          setState.kopBase64 = dataUrl;
+          document.getElementById('preview-kop-container').innerHTML = '<img src="' + dataUrl + '" class="max-h-24 max-w-full object-contain">';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetSingleDefault(type) {
+      if (type === 'logo') {
+        setLogoMode('url');
+        document.getElementById('set-logo-url').value = setState.defaults.logo || DEFAULT_LOGO_URL;
+      } else {
+        setKopMode('url');
+        document.getElementById('set-kop-url').value = setState.defaults.kop || DEFAULT_KOP_URL;
+      }
+      updatePreviews();
+    }
+
+    function toggleAdminPinVisibility() {
+      const inp = document.getElementById('set-pin-admin');
+      const icon = document.getElementById('icon-eye-admin-pin');
+      const isPass = inp.type === 'password';
+      inp.type = isPass ? 'text' : 'password';
+      icon.className = isPass ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+    }
+
+    function generateRandomProctorPin() {
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      document.getElementById('set-pin-pengawas').value = code;
+      showToast('PIN Pengawas baru dibuat: ' + code + ' (klik Simpan Pengaturan).', 'info');
+    }
+
+    function resetAllDefaults() {
+      resetSingleDefault('logo');
+      resetSingleDefault('kop');
+      showToast('URL Logo & Kop dikembalikan ke default. Klik Simpan Pengaturan.', 'info');
+    }
+
+    function updatePreviews() {
+      const logoVal = document.getElementById('set-logo-url').value.trim();
+      if (!setState.logoBase64) {
+        setImgWithFallback('preview-logo-img', toDriveImg(logoVal), toDriveThumb(logoVal));
+      }
+      const kopVal = document.getElementById('set-kop-url').value.trim();
+      if (!setState.kopBase64) {
+        const isImg = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp|svg))|(drive\.google\.com)|(lh3\.googleusercontent\.com)/i.test(kopVal);
+        const box = document.getElementById('preview-kop-container');
+        if (isImg) {
+          box.innerHTML = '<img id="preview-kop-img" src="' + escapeHtml(toDriveImg(kopVal)) + '" onerror="this.onerror=null;this.src=\'' + escapeJsAttr(toDriveThumb(kopVal)) + '\'" class="max-h-24 max-w-full object-contain">';
+        } else {
+          box.innerHTML = '<div class="text-center text-sm font-bold text-slate-800 whitespace-pre-line">' + escapeHtml(kopVal || '-') + '</div>';
+        }
+      }
+    }
+
+    async function submitSettingsForm(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-settings');
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+      try {
+        const res = await callServer('saveAppSettings', globalState.adminToken, {
+          namaSekolah: document.getElementById('set-nama-sekolah').value.trim(),
+          logo: document.getElementById('set-logo-url').value.trim(),
+          kop: document.getElementById('set-kop-url').value.trim(),
+          logoBase64: setState.logoBase64 || '',
+          kopBase64: setState.kopBase64 || '',
+          folderIdDrive: document.getElementById('set-folder-drive').value.trim(),
+          sumberData: document.getElementById('set-sumber-data').value.trim(),
+          maxViolations: Number(document.getElementById('set-max-violations').value),
+          requireFullscreen: document.getElementById('set-require-fullscreen').checked,
+          pinPengawas: document.getElementById('set-pin-pengawas').value.trim(),
+          pinAdmin: document.getElementById('set-pin-admin').value.trim()
+        });
+        if (!res || !res.ok) { Swal.fire('Gagal', (res && res.message) || 'Gagal menyimpan.', 'error'); return; }
+        showToast(res.message, 'success');
+        await loadSettingsData();
+      } catch (err) {
+        Swal.fire('Kesalahan', String(err.message || err), 'error');
+      } finally {
+        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Pengaturan';
+      }
+    }
+  </script>
+</body>
+</html>

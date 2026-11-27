@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title><?= initialAppTitle ?> - Data Mapel & Kelas</title>
+  <?!= include('StyleCSS'); ?>
+</head>
+<body class="bg-slate-50 text-slate-800 flex h-dvh-screen overflow-hidden">
+  <?!= include('Sidebar'); ?>
+
+  <div class="flex-1 flex flex-col h-dvh-screen overflow-hidden w-full">
+    <?!= include('Header', { pageTitle: 'Data Mapel & Kelas' }); ?>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 pb-24">
+      <!-- Guard Login Admin -->
+      <section id="dm-auth-guard" class="hidden bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 inline-flex items-center justify-center text-2xl mb-3">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <h3 class="text-lg font-extrabold text-slate-900">Akses Khusus Administrator</h3>
+        <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk menambah atau menghapus data pada sheet DB_Mapel dan DB_Kelas.</p>
+        <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+          <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
+        </button>
+      </section>
+
+      <section id="dm-content" class="hidden space-y-5">
+        <!-- Info & Pintasan -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-900">Master Data Pilihan Form Tambah Soal</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Data di sheet <code>DB_Mapel</code> &amp; <code>DB_Kelas</code> otomatis mengisi dropdown pilihan pada menu Kelola Link Soal.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <a id="dm-sheet-link" href="#" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+              <i class="fa-solid fa-table mr-1"></i> Buka Google Sheet
+            </a>
+            <button type="button" onclick="navigateTo('kelola-soal')" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+              <i class="fa-solid fa-link mr-1"></i> Ke Kelola Link Soal
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <!-- PANEL 1: DB_Mapel -->
+          <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden flex flex-col">
+            <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-2 bg-slate-50/70">
+              <div>
+                <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-book-open text-brand-600"></i>
+                  <span>Data Mata Pelajaran (DB_Mapel)</span>
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-0.5">Kolom sheet: <code>No, Nama Mapel</code></p>
+              </div>
+              <span id="count-mapel" class="px-2.5 py-1 rounded-full text-xs font-bold bg-brand-50 text-brand-700">0 Mapel</span>
+            </div>
+
+            <form onsubmit="submitAddMaster(event, 'mapel')" class="p-4 border-b border-slate-200 bg-slate-50/40 space-y-2.5">
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input id="add-mapel-no" type="text" placeholder="No (Otomatis)"
+                  class="w-full sm:w-28 text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none">
+                <input id="add-mapel-nama" type="text" required placeholder="Nama Mapel (misal: Matematika)"
+                  class="flex-1 text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+                <button id="btn-add-mapel" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shrink-0">
+                  <i class="fa-solid fa-plus mr-1"></i> Tambah
+                </button>
+              </div>
+              <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input id="search-mapel" type="text" oninput="renderMasterTables()" placeholder="Cari mata pelajaran..."
+                  class="w-full text-xs pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg bg-white outline-none">
+              </div>
+            </form>
+
+            <div class="overflow-x-auto flex-1">
+              <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                  <tr>
+                    <th class="px-4 py-2.5 font-bold whitespace-nowrap w-16">No</th>
+                    <th class="px-4 py-2.5 font-bold whitespace-nowrap">Nama Mapel</th>
+                    <th class="px-4 py-2.5 font-bold whitespace-nowrap text-right w-24">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-mapel" class="divide-y divide-slate-100">
+                  <tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Memuat data DB_Mapel...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PANEL 2: DB_Kelas -->
+          <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden flex flex-col">
+            <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-2 bg-slate-50/70">
+              <div>
+                <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-users-rectangle text-emerald-600"></i>
+                  <span>Data Kelas (DB_Kelas)</span>
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-0.5">Kolom sheet: <code>No, Kelas</code></p>
+              </div>
+              <span id="count-kelas" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">0 Kelas</span>
+            </div>
+
+            <form onsubmit="submitAddMaster(event, 'kelas')" class="p-4 border-b border-slate-200 bg-slate-50/40 space-y-2.5">
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input id="add-kelas-no" type="text" placeholder="No (Otomatis)"
+                  class="w-full sm:w-28 text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none">
+                <input id="add-kelas-nama" type="text" required placeholder="Nama Kelas (misal: XI DKV)"
+                  class="flex-1 text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                <button id="btn-add-kelas" type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0">
+                  <i class="fa-solid fa-plus mr-1"></i> Tambah
+                </button>
+              </div>
+              <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input id="search-kelas" type="text" oninput="renderMasterTables()" placeholder="Cari kelas..."
+                  class="w-full text-xs pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg bg-white outline-none">
+              </div>
+            </form>
+
+            <div class="overflow-x-auto flex-1">
+              <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                  <tr>
+                    <th class="px-4 py-2.5 font-bold whitespace-nowrap w-16">No</th>
+                    <th class="px-4 py-2.5 font-bold whitespace-nowrap">Kelas</th>
+                    <th class="px-4 py-2.5 font-bold whitespace-nowrap text-right w-24">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-kelas" class="divide-y divide-slate-100">
+                  <tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Memuat data DB_Kelas...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <?!= include('AppJS'); ?>
+
+  <script>
+    const dmState = { mapel: [], kelas: [] };
+
+    window.onPageReady = async function () {
+      const auth = await ensureAdminAuthenticated(true);
+      if (auth !== true) {
+        document.getElementById('dm-auth-guard').classList.remove('hidden');
+        document.getElementById('dm-content').classList.add('hidden');
+        if (auth === 'forbidden_role') {
+          document.querySelector('#dm-auth-guard h3').textContent = 'Akses Khusus Administrator';
+          document.querySelector('#dm-auth-guard p').textContent = 'Hanya Admin yang dapat menambah atau menghapus data DB_Mapel dan DB_Kelas.';
+        }
+        try {
+          const pub = await callServer('getPublicPortalData', false);
+          if (pub && pub.ok) { globalState.isFirstTimeSetup = Boolean(pub.isFirstTimeSetup); applyGlobalBranding(pub.settings); }
+        } catch (e) {}
+        return;
+      }
+      document.getElementById('dm-auth-guard').classList.add('hidden');
+      document.getElementById('dm-content').classList.remove('hidden');
+      await loadMasterData();
+    };
+
+    window.onPageRefresh = async function () {
+      if (globalState.adminToken) await loadMasterData();
+    };
+
+    async function loadMasterData() {
+      const res = await callServer('getAdminDashboardData', globalState.adminToken);
+      if (!res || !res.ok) {
+        if (res && res.authError) { clearAdminSessionStorage(); updateAuthUI(); window.onPageReady(); }
+        return;
+      }
+      globalState.serverOffsetMs = res.serverNowMs - Date.now();
+      applyGlobalBranding(res.settings);
+      dmState.mapel = res.masterMapel || [];
+      dmState.kelas = res.masterKelas || [];
+      if (res.spreadsheetUrl) document.getElementById('dm-sheet-link').href = res.spreadsheetUrl;
+      renderMasterTables();
+    }
+
+    function renderMasterTables() {
+      const qMapel = (document.getElementById('search-mapel').value || '').trim().toLowerCase();
+      const qKelas = (document.getElementById('search-kelas').value || '').trim().toLowerCase();
+
+      document.getElementById('count-mapel').textContent = dmState.mapel.length + ' Mapel';
+      document.getElementById('count-kelas').textContent = dmState.kelas.length + ' Kelas';
+
+      const filteredMapel = dmState.mapel.filter(function (m) {
+        return !qMapel || (m.namaMapel + ' ' + m.no).toLowerCase().indexOf(qMapel) !== -1;
+      });
+      const tbodyMapel = document.getElementById('tbody-mapel');
+      tbodyMapel.innerHTML = filteredMapel.length ? filteredMapel.map(function (m) {
+        return (
+          '<tr class="hover:bg-slate-50/80">' +
+            '<td class="px-4 py-2.5 font-mono font-bold text-slate-600">' + escapeHtml(m.no) + '</td>' +
+            '<td class="px-4 py-2.5 font-semibold text-slate-900">' + escapeHtml(m.namaMapel) + '</td>' +
+            '<td class="px-4 py-2.5 text-right">' +
+              '<button type="button" onclick="confirmDeleteMaster(\'mapel\', ' + m.rowIndex + ', \'' + escapeJsAttr(m.namaMapel) + '\')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700">Hapus</button>' +
+            '</td>' +
+          '</tr>'
+        );
+      }).join('') : '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Belum ada data di sheet DB_Mapel.</td></tr>';
+
+      const filteredKelas = dmState.kelas.filter(function (k) {
+        return !qKelas || (k.kelas + ' ' + k.no).toLowerCase().indexOf(qKelas) !== -1;
+      });
+      const tbodyKelas = document.getElementById('tbody-kelas');
+      tbodyKelas.innerHTML = filteredKelas.length ? filteredKelas.map(function (k) {
+        return (
+          '<tr class="hover:bg-slate-50/80">' +
+            '<td class="px-4 py-2.5 font-mono font-bold text-slate-600">' + escapeHtml(k.no) + '</td>' +
+            '<td class="px-4 py-2.5 font-semibold text-slate-900"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">' + escapeHtml(k.kelas) + '</span></td>' +
+            '<td class="px-4 py-2.5 text-right">' +
+              '<button type="button" onclick="confirmDeleteMaster(\'kelas\', ' + k.rowIndex + ', \'' + escapeJsAttr(k.kelas) + '\')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700">Hapus</button>' +
+            '</td>' +
+          '</tr>'
+        );
+      }).join('') : '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Belum ada data di sheet DB_Kelas.</td></tr>';
+    }
+
+    async function submitAddMaster(e, kind) {
+      e.preventDefault();
+      const noEl = document.getElementById(kind === 'mapel' ? 'add-mapel-no' : 'add-kelas-no');
+      const valEl = document.getElementById(kind === 'mapel' ? 'add-mapel-nama' : 'add-kelas-nama');
+      const btnEl = document.getElementById(kind === 'mapel' ? 'btn-add-mapel' : 'btn-add-kelas');
+      const val = valEl.value.trim();
+      if (!val) return;
+
+      btnEl.disabled = true;
+      btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+      try {
+        const res = await callServer('addMasterRecord', globalState.adminToken, kind, {
+          no: noEl.value.trim(),
+          value: val
+        });
+        if (!res || !res.ok) {
+          if (res && res.authError) { clearAdminSessionStorage(); updateAuthUI(); window.onPageReady(); return; }
+          showToast((res && res.message) || 'Gagal menambah data.', 'error');
+          return;
+        }
+        noEl.value = '';
+        valEl.value = '';
+        if (kind === 'mapel') dmState.mapel = res.items || [];
+        else dmState.kelas = res.items || [];
+        renderMasterTables();
+        showToast(res.message, 'success');
+      } catch (err) {
+        showToast('Error: ' + (err.message || err), 'error');
+      } finally {
+        btnEl.disabled = false;
+        btnEl.innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Tambah';
+      }
+    }
+
+    async function confirmDeleteMaster(kind, rowIndex, label) {
+      const sheetName = kind === 'mapel' ? 'DB_Mapel' : 'DB_Kelas';
+      const ask = await Swal.fire({
+        title: 'Hapus Data?',
+        text: 'Hapus "' + label + '" dari sheet ' + sheetName + '?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+      });
+      if (!ask.isConfirmed) return;
+
+      const res = await callServer('deleteMasterRecord', globalState.adminToken, kind, rowIndex);
+      if (res && res.ok) {
+        if (kind === 'mapel') dmState.mapel = res.items || [];
+        else dmState.kelas = res.items || [];
+        renderMasterTables();
+        showToast(res.message, 'success');
+      } else {
+        showToast((res && res.message) || 'Gagal menghapus data.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

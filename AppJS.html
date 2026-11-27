@@ -1,0 +1,572 @@
+<script>
+  const APP_URL = <?!= JSON.stringify(appUrl) ?>;
+  const CURRENT_PAGE = <?!= JSON.stringify(currentPage) ?>;
+  const APP_PARAMS = <?!= JSON.stringify(params || {}) ?>;
+
+  const DEFAULT_LOGO_URL = 'https://drive.google.com/file/d/1_4m0lkw99HvxaPXvOhy0UOudoPmiIRc-/view?usp=drive_link';
+  const DEFAULT_KOP_URL = 'https://drive.google.com/file/d/1QXtnYwIrCc-pihDUoidjkRW5UVWykOn-/view?usp=drive_link';
+
+  const globalState = {
+    serverOffsetMs: 0,
+    todayIso: '',
+    isFirstTimeSetup: false,
+    settings: null,
+    security: { maxViolations: 3, requireFullscreen: true },
+    adminToken: safeStorageGet('anticurang_admin_token'),
+    userRole: safeStorageGet('anticurang_user_role') || 'Guest',
+    userName: safeStorageGet('anticurang_user_name') || 'Peserta Ujian'
+  };
+
+  function getAppUrl() {
+    return APP_URL;
+  }
+
+  /**
+   * Navigasi MPA via window.top.location.href mencegah blank putih iframe sandbox
+   */
+  function navigateTo(page, params) {
+    safeStorageSet('anticurang_active_page', page);
+    let url = getAppUrl() + '?page=' + encodeURIComponent(page);
+    if (params && typeof params === 'object') {
+      for (var k in params) {
+        if (Object.prototype.hasOwnProperty.call(params, k)) {
+          url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        }
+      }
+    }
+    try {
+      if (window.top && window.top !== window) {
+        window.top.location.href = url;
+        return;
+      }
+    } catch (e) {}
+    window.location.href = url;
+  }
+
+  function goToPage(page, params) {
+    navigateTo(page, params);
+  }
+
+  /**
+   * Wrapper Promise untuk panggilan RPC google.script.run
+   */
+  function callServer(fnName) {
+    const args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (resolve, reject) {
+      let runner = google.script.run
+        .withSuccessHandler(function (res) { resolve(res); })
+        .withFailureHandler(function (err) { reject(err); });
+      runner[fnName].apply(runner, args);
+    });
+  }
+
+  /* =========================================================================
+   * SIDEBAR OFF-CANVAS & CLOSED-BY-DEFAULT ACCORDION NAVIGATION
+   * ========================================================================= */
+  function toggleSidebar() {
+    const sb = document.getElementById('app-sidebar');
+    const ov = document.getElementById('sidebar-overlay');
+    if (!sb || !ov) return;
+    const isClosed = sb.classList.contains('-translate-x-full');
+    if (isClosed) {
+      sb.classList.remove('-translate-x-full');
+      sb.classList.add('translate-x-0');
+      ov.classList.remove('hidden');
+    } else {
+      sb.classList.add('-translate-x-full');
+      sb.classList.remove('translate-x-0');
+      ov.classList.add('hidden');
+    }
+  }
+
+  function toggleNavGroup(groupKey, forceState) {
+    const sub = document.getElementById('submenu-' + groupKey);
+    const chev = document.getElementById('chevron-' + groupKey);
+    if (!sub || !chev) return;
+
+    const currentlyHidden = sub.classList.contains('hidden');
+    const shouldOpen = forceState ? (forceState === 'open') : currentlyHidden;
+
+    sub.classList.toggle('hidden', !shouldOpen);
+    chev.classList.toggle('-rotate-90', !shouldOpen);
+    try {
+      sessionStorage.setItem('anticurang_nav_' + groupKey, shouldOpen ? 'open' : 'closed');
+    } catch (e) {}
+  }
+
+  function initAccordionState() {
+    const pageToGroup = {
+      'portal': 'portal',
+      'jadwal': 'portal',
+      'monitoring': 'monitoring',
+      'laporan': 'monitoring',
+      'kelola-soal': 'admin',
+      'data-master': 'admin',
+      'pengaturan': 'admin'
+    };
+    const activeGroup = pageToGroup[CURRENT_PAGE] || 'portal';
+
+    ['portal', 'monitoring', 'admin'].forEach(function (key) {
+      let saved = '';
+      try { saved = sessionStorage.getItem('anticurang_nav_' + key) || ''; } catch (e) {}
+      if (key === activeGroup || saved === 'open') {
+        toggleNavGroup(key, 'open');
+      } else {
+        toggleNavGroup(key, 'closed');
+      }
+    });
+  }
+
+  /* =========================================================================
+   * REAL-TIME CLOCK ENGINE & DYNAMIC TIME-BASED GREETING
+   * ========================================================================= */
+  function getTimeGreeting(dateObj) {
+    const h = dateObj.getHours();
+    if (h >= 4 && h <= 10) return 'Selamat Pagi';
+    if (h >= 11 && h <= 14) return 'Selamat Siang';
+    if (h >= 15 && h <= 17) return 'Selamat Sore';
+    return 'Selamat Malam';
+  }
+
+  function updateDeviceDateTime() {
+    const now = new Date(Date.now() + globalState.serverOffsetMs);
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const formatted =
+      days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear() +
+      ' • ' + pad2(now.getHours()) + ':' + pad2(now.getMinutes()) + ':' + pad2(now.getSeconds());
+
+    const clockEl = document.getElementById('header-live-clock');
+    if (clockEl) clockEl.textContent = formatted;
+    const pubClockEl = document.getElementById('public-live-clock');
+    if (pubClockEl) pubClockEl.textContent = formatted;
+
+    const greetEl = document.getElementById('header-greeting');
+    if (greetEl) {
+      const roleDisplay = globalState.adminToken ? (globalState.userName || 'Administrator') : 'Peserta Ujian';
+      greetEl.textContent = getTimeGreeting(now) + ', ' + roleDisplay + '!';
+    }
+  }
+
+  /* =========================================================================
+   * RBAC & OTENTIKASI ADMIN
+   * ========================================================================= */
+  function updateAuthUI() {
+    const isLoggedIn = Boolean(globalState.adminToken);
+    const isAdmin = isLoggedIn && globalState.userRole === 'Admin';
+    const isPengawas = isLoggedIn && globalState.userRole === 'Pengawas';
+    const dot = document.getElementById('sidebar-role-dot');
+    const lbl = document.getElementById('sidebar-role-label');
+    const rolePill = document.getElementById('sidebar-role-pill');
+    const adminGroup = document.getElementById('nav-group-admin');
+    const authBtn = document.getElementById('btn-auth');
+    const authIcon = document.getElementById('icon-auth');
+
+    if (dot && lbl) {
+      dot.className = 'w-2.5 h-2.5 rounded-full shrink-0 ' + (isAdmin ? 'bg-amber-400' : (isPengawas ? 'bg-sky-400' : 'bg-emerald-400'));
+      lbl.textContent = isAdmin ? 'Administrator (Aktif)' : (isPengawas ? 'Pengawas Ruang (Aktif)' : 'Belum Login');
+    }
+    if (rolePill) {
+      rolePill.textContent = isAdmin ? 'Admin' : (isPengawas ? 'Pengawas' : 'Tamu');
+    }
+    if (adminGroup) {
+      adminGroup.classList.toggle('hidden', !isAdmin);
+    }
+    if (authBtn && authIcon) {
+      authBtn.title = isLoggedIn ? 'Keluar Sesi (' + globalState.userRole + ')' : 'Masuk Admin / Pengawas';
+      authBtn.className = 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-xs flex items-center justify-center transition ' +
+        (isLoggedIn ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-brand-600 hover:bg-brand-700 text-white');
+      authIcon.className = 'fa-solid text-sm ' + (isLoggedIn ? 'fa-right-from-bracket' : 'fa-right-to-bracket');
+    }
+    updateDeviceDateTime();
+  }
+
+  async function handleHeaderAuthClick() {
+    if (globalState.adminToken) {
+      const confirmRes = await Swal.fire({
+        title: 'Keluar dari Sesi ' + (globalState.userRole || 'Admin') + '?',
+        text: 'Sesi Anda akan ditutup.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Ya, Keluar',
+        cancelButtonText: 'Batal'
+      });
+      if (confirmRes.isConfirmed) {
+        clearAdminSessionStorage();
+        updateAuthUI();
+        navigateTo('admin');
+      }
+      return;
+    }
+    await promptAdminLoginModal();
+  }
+
+  async function promptAdminLoginModal(onSuccess) {
+    const hintHtml = globalState.isFirstTimeSetup
+      ? '<div class="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-2.5 mb-3 text-left"><b>Pengaturan Awal:</b> PIN Admin default <code>123456</code> • PIN Pengawas default <code>654321</code>.</div>'
+      : '';
+
+    const result = await Swal.fire({
+      title: 'Masuk Dashboard',
+      html: hintHtml + '<p class="text-xs text-slate-500 mb-2">Masukkan <b>PIN Admin</b> (akses penuh) atau <b>PIN Pengawas</b> (dari Sheet <code>Pengaturan</code>) untuk monitoring ujian.</p>',
+      input: 'password',
+      inputPlaceholder: 'Masukkan PIN Admin atau PIN Pengawas...',
+      inputAttributes: { autocapitalize: 'off', autocorrect: 'off' },
+      showCancelButton: true,
+      confirmButtonText: 'Masuk',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#1d4ed8',
+      showLoaderOnConfirm: true,
+      preConfirm: async function (pin) {
+        if (!pin) {
+          Swal.showValidationMessage('PIN wajib diisi');
+          return false;
+        }
+        try {
+          const res = await callServer('verifyAdminPin', pin);
+          if (!res || !res.ok) {
+            Swal.showValidationMessage((res && res.message) || 'PIN salah');
+            return false;
+          }
+          return res;
+        } catch (err) {
+          Swal.showValidationMessage('Kesalahan: ' + (err.message || err));
+          return false;
+        }
+      },
+      allowOutsideClick: function () { return !Swal.isLoading(); }
+    });
+
+    if (result.isConfirmed && result.value && result.value.ok) {
+      globalState.adminToken = result.value.token;
+      globalState.userRole = result.value.role || 'Admin';
+      globalState.userName = result.value.displayName || 'Administrator';
+      safeStorageSet('anticurang_admin_token', globalState.adminToken);
+      safeStorageSet('anticurang_user_role', globalState.userRole);
+      safeStorageSet('anticurang_user_name', globalState.userName);
+      updateAuthUI();
+      showToast('Berhasil masuk sebagai ' + globalState.userName + '.', 'success');
+      if (typeof onSuccess === 'function') {
+        onSuccess();
+      } else if (CURRENT_PAGE === 'portal') {
+        navigateTo('admin');
+      } else if (typeof window.onPageReady === 'function') {
+        window.onPageReady();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  async function ensureAdminAuthenticated(requireStrictAdmin) {
+    if (globalState.adminToken) {
+      try {
+        const chk = await callServer('validateAdminToken', globalState.adminToken);
+        if (chk && chk.ok) {
+          globalState.userRole = chk.role || globalState.userRole;
+          globalState.userName = chk.displayName || globalState.userName;
+          safeStorageSet('anticurang_user_role', globalState.userRole);
+          safeStorageSet('anticurang_user_name', globalState.userName);
+          updateAuthUI();
+          if (requireStrictAdmin && globalState.userRole !== 'Admin') {
+            return 'forbidden_role';
+          }
+          return true;
+        }
+      } catch (e) {}
+      clearAdminSessionStorage();
+      updateAuthUI();
+    }
+    return false;
+  }
+
+  function clearAdminSessionStorage() {
+    globalState.adminToken = '';
+    globalState.userRole = 'Guest';
+    globalState.userName = 'Peserta Ujian';
+    try {
+      localStorage.removeItem('anticurang_admin_token');
+      localStorage.removeItem('anticurang_user_role');
+      localStorage.removeItem('anticurang_user_name');
+      sessionStorage.removeItem('anticurang_admin_token');
+      sessionStorage.removeItem('anticurang_user_role');
+      sessionStorage.removeItem('anticurang_user_name');
+    } catch (e) {}
+  }
+
+  /* =========================================================================
+   * REFRESH DATA & BERSIHKAN CACHE WEB (SESUAI SECTION 5.C)
+   * ========================================================================= */
+  async function refreshAllData() {
+    const icon = document.getElementById('icon-refresh');
+    if (icon) icon.classList.add('fa-spin');
+    try {
+      if (typeof window.onPageRefresh === 'function') {
+        await window.onPageRefresh();
+      } else if (typeof window.onPageReady === 'function') {
+        await window.onPageReady(true);
+      }
+      showToast('Data disinkronkan dari Google Spreadsheet.', 'success');
+    } catch (err) {
+      showToast('Gagal sinkronisasi: ' + (err.message || err), 'error');
+    } finally {
+      if (icon) icon.classList.remove('fa-spin');
+    }
+  }
+
+  async function clearAppCache() {
+    const confirm = await Swal.fire({
+      title: 'Bersihkan Cache Web?',
+      text: 'Menghapus cache penyimpanan browser, keluar dari sesi lokal, dan kembali ke halaman awal Portal.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d97706',
+      confirmButtonText: 'Ya, Bersihkan & Muat Ulang',
+      cancelButtonText: 'Batal'
+    });
+    if (!confirm.isConfirmed) return;
+
+    try { localStorage.clear(); } catch (e) {}
+    try { sessionStorage.clear(); } catch (e) {}
+    try {
+      if (window.caches && typeof window.caches.keys === 'function') {
+        const keys = await window.caches.keys();
+        await Promise.all(keys.map(function (k) { return window.caches.delete(k); }));
+      }
+    } catch (e) {}
+
+    // Navigasi aman kembali ke halaman Admin via anchor target _top
+    const a = document.createElement('a');
+    a.href = getAppUrl() + '?page=' + (CURRENT_PAGE === 'portal' ? 'portal' : 'admin');
+    a.target = '_top';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+  }
+
+  /* =========================================================================
+   * BRANDING, SMART KOP ENGINE & UNIVERSAL POPULATE SELECT (COMBOBOX)
+   * ========================================================================= */
+  function applyGlobalBranding(settings) {
+    if (!settings) return;
+    globalState.settings = settings;
+    const schoolName = settings.namaSekolah || 'PORTAL UJIAN ANTICURANG';
+    const sbName = document.getElementById('sidebar-school-name');
+    if (sbName) sbName.textContent = schoolName;
+
+    setImgWithFallback('sidebar-logo-img', settings.logoUrl, settings.logoFallbackUrl);
+
+    const kopBannerEl = document.getElementById('global-kop-banner');
+    const kopWrapEl = document.getElementById('global-kop-wrap');
+    if (kopBannerEl && kopWrapEl) {
+      if (settings.isKopImage && settings.kopUrl) {
+        kopWrapEl.classList.remove('hidden');
+        setImgWithFallback('global-kop-banner', settings.kopUrl, settings.kopFallbackUrl, function () {
+          kopWrapEl.classList.add('hidden');
+        });
+      } else {
+        kopWrapEl.classList.add('hidden');
+      }
+    }
+
+    const headSchool = document.getElementById('global-school-name');
+    if (headSchool) headSchool.textContent = schoolName;
+    setImgWithFallback('global-logo-img', settings.logoUrl, settings.logoFallbackUrl);
+  }
+
+  /**
+   * Smart Kop Divider Engine (Section 8.A):
+   * Otomatis menghilangkan garis biru ganda jika kop berupa gambar banner.
+   */
+  function renderSmartKopHtml(settings) {
+    const s = settings || globalState.settings || {};
+    const kopVal = s.kopRaw || '';
+    const isImg = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp|svg))|(drive\.google\.com)|(lh3\.googleusercontent\.com)/i.test(kopVal);
+
+    if (isImg) {
+      const imgPrimary = s.kopUrl || toDriveImg(kopVal);
+      const imgFallback = s.kopFallbackUrl || toDriveThumb(kopVal);
+      return (
+        '<div style="text-align:center; margin-bottom:8px;">' +
+          '<img src="' + escapeHtml(imgPrimary) + '" onerror="this.onerror=null;this.src=\'' + escapeJsAttr(imgFallback) + '\'" ' +
+          'alt="Kop Sekolah" style="max-height:125px; max-width:100%; width:auto; margin:0 auto; display:block; object-fit:contain;">' +
+        '</div>'
+      );
+    }
+    const textKop = kopVal || s.namaSekolah || 'PORTAL UJIAN ANTICURANG';
+    return (
+      '<div style="text-align:center;">' +
+        '<div style="font-size:18px; font-weight:800; color:#0f172a; white-space:pre-line;">' + escapeHtml(textKop) + '</div>' +
+        '<div class="kop-divider"></div>' +
+      '</div>'
+    );
+  }
+
+  /**
+   * Universal Handler populateSelect (Section 12.4):
+   * Mendukung elemen <select>, <input list="...">, maupun <datalist>
+   */
+  function populateSelect(targetId, items, defaultLabel, preserveOrder) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+
+    const uniqueSet = {};
+    const orderedList = [];
+    (items || []).forEach(function (v) {
+      const txt = String(v == null ? '' : v).trim();
+      if (txt && !uniqueSet[txt]) {
+        uniqueSet[txt] = true;
+        orderedList.push(txt);
+      }
+    });
+    const sorted = preserveOrder ? orderedList : orderedList.slice().sort();
+
+    if (el.tagName === 'SELECT') {
+      const prev = el.value;
+      const head = defaultLabel ? ('<option value="">' + escapeHtml(defaultLabel) + '</option>') : '';
+      el.innerHTML = head + sorted.map(function (v) {
+        return '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>';
+      }).join('');
+      if (uniqueSet[prev]) el.value = prev;
+      return;
+    }
+
+    if (el.tagName === 'DATALIST') {
+      el.innerHTML = sorted.map(function (v) {
+        return '<option value="' + escapeHtml(v) + '">';
+      }).join('');
+      return;
+    }
+
+    if (el.tagName === 'INPUT' && el.getAttribute('list')) {
+      const dl = document.getElementById(el.getAttribute('list'));
+      if (dl) {
+        dl.innerHTML = sorted.map(function (v) {
+          return '<option value="' + escapeHtml(v) + '">';
+        }).join('');
+      }
+    }
+  }
+
+  /* =========================================================================
+   * UTILITAS UMUM
+   * ========================================================================= */
+  function setImgWithFallback(elementId, primaryUrl, fallbackUrl, onAllFail) {
+    const img = document.getElementById(elementId);
+    if (!img) return;
+    img.dataset.fallbackTried = '0';
+    img.onerror = function () {
+      if (img.dataset.fallbackTried === '0' && fallbackUrl && fallbackUrl !== img.src) {
+        img.dataset.fallbackTried = '1';
+        img.src = fallbackUrl;
+      } else if (typeof onAllFail === 'function') {
+        onAllFail();
+      }
+    };
+    img.src = primaryUrl || fallbackUrl || '';
+  }
+
+  function extractDriveId(url) {
+    const s = String(url || '').trim();
+    let m = s.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (m) return m[1];
+    m = s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (m) return m[1];
+    m = s.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/);
+    if (m) return m[1];
+    return '';
+  }
+
+  function toDriveImg(url) {
+    const id = extractDriveId(url);
+    return id ? ('https://lh3.googleusercontent.com/d/' + id) : String(url || '').trim();
+  }
+
+  function toDriveThumb(url) {
+    const id = extractDriveId(url);
+    return id ? ('https://drive.google.com/thumbnail?id=' + id + '&sz=w1200') : String(url || '').trim();
+  }
+
+  function showToast(message, icon) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        toast: true,
+        position: 'bottom-end',
+        icon: icon || 'info',
+        title: message,
+        showConfirmButton: false,
+        timer: 3500,
+        timerProgressBar: true
+      });
+    }
+  }
+
+  function formatDurationMs(ms) {
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return pad2(h) + ':' + pad2(m) + ':' + pad2(s);
+  }
+
+  function todayIsoLocal() {
+    const d = new Date(Date.now() + globalState.serverOffsetMs);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  function pad2(n) { return n < 10 ? '0' + n : String(n); }
+
+  function safeStorageGet(key) {
+    try { return sessionStorage.getItem(key) || localStorage.getItem(key) || ''; } catch (e) { return ''; }
+  }
+
+  function safeStorageSet(key, val) {
+    try {
+      sessionStorage.setItem(key, String(val || ''));
+      localStorage.setItem(key, String(val || ''));
+    } catch (e) {}
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        showToast('Link disalin ke clipboard.', 'success');
+      });
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Link disalin.', 'success');
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function escapeJsAttr(str) {
+    return String(str == null ? '' : str)
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/"/g, '&quot;');
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initAccordionState();
+    updateAuthUI();
+    updateDeviceDateTime();
+    setInterval(updateDeviceDateTime, 1000);
+    if (typeof window.onPageReady === 'function') {
+      window.onPageReady(false);
+    }
+  });
+</script>
