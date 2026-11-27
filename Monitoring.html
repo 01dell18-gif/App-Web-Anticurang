@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= initialAppTitle ?> - Dashboard Monitoring Akses</title>
   <?!= include('StyleCSS'); ?>
 </head>
@@ -90,7 +91,7 @@
               <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
             </div>
 
-            <select id="mon-status-filter" onchange="renderMonitoringTable()" class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+            <select id="mon-status-filter" onchange="renderMonitoringTable()" aria-label="Filter Berdasarkan Status Sesi" title="Filter Berdasarkan Status Sesi" class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 outline-none">
               <option value="">Semua Status</option>
               <option value="Sedang Mengerjakan">Sedang Mengerjakan</option>
               <option value="Selesai">Selesai</option>

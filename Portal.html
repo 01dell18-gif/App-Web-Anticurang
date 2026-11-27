@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= initialAppTitle ?> - Web Publik Jadwal Ujian</title>
   <?!= include('StyleCSS'); ?>
 </head>
@@ -73,7 +74,7 @@
               class="w-full text-xs sm:text-sm pl-8 pr-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none">
           </div>
 
-          <select id="portal-hari-filter" onchange="renderPortalExams()" class="w-full sm:w-auto text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none cursor-pointer">
+          <select id="portal-hari-filter" onchange="renderPortalExams()" aria-label="Filter Hari atau Tanggal Ujian" title="Filter Hari atau Tanggal Ujian" class="w-full sm:w-auto text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none cursor-pointer">
             <option value="">Semua Hari / Tanggal</option>
           </select>
 
@@ -128,7 +129,7 @@
     <div class="bg-white rounded-t-2xl sm:rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col">
       <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
         <h3 class="font-extrabold text-slate-900">Masuk Ujian Mode Anticurang</h3>
-        <button type="button" onclick="closeExamRulesModal()" class="text-slate-400 hover:text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
+        <button type="button" onclick="closeExamRulesModal()" aria-label="Tutup Jendela" title="Tutup Jendela" class="text-slate-400 hover:text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form onsubmit="launchConfirmedExam(event)">
         <div class="p-4 sm:p-5 space-y-3.5 max-h-[72dvh] sm:max-h-[75dvh] overflow-y-auto">
@@ -143,7 +144,7 @@
               <label class="block text-xs font-bold text-slate-600">Kelas <span class="text-red-600">*</span></label>
               <span id="student-class-auto-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">Otomatis dari jadwal soal</span>
             </div>
-            <select id="student-class-select" onchange="handlePortalClassSelect()" class="hidden w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+            <select id="student-class-select" onchange="handlePortalClassSelect()" aria-label="Pilih Kelas Siswa" title="Pilih Kelas Siswa" class="hidden w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
               <option value="">-- Pilih Kelas --</option>
             </select>
             <input id="student-class-input" type="text" required placeholder="Misal: XI DKV"
@@ -169,7 +170,7 @@
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
               </div>
-              <select id="student-name-select" onchange="handlePortalStudentSelect()" class="hidden"></select>
+              <select id="student-name-select" onchange="handlePortalStudentSelect()" aria-label="Pilih Nama Siswa" title="Pilih Nama Siswa" class="hidden"></select>
             </div>
             <div>
               <div class="flex items-center justify-between gap-2 mb-1">
