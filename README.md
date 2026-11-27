@@ -134,6 +134,7 @@ Seluruh HTML antarmuka pengguna sengaja **tidak menampilkan** nama sheet dan pos
    - Kolom E: `Sumber Data` (teks keterangan sumber data pada cetakan Laporan PDF)
    - Kolom F: `PIN Pengawas` (`F2`, default `654321`)
    - Kolom G: `PIN Admin` (`G2`, default `123456`)
+   - Kolom H: `Batas Pelanggaran` (`H2`, default `3` - batas maksimal pelanggaran sebelum layar soal terkunci, isi `0` untuk peringatan saja)
 
 5. **`Log_Monitoring`** (Riwayat Sesi & Pelanggaran Anticurang)
    - Kolom A–M: `ID Sesi`, `Waktu Akses`, `Nama Siswa`, `NIS / Peserta`, `Kelas Siswa`, `No Soal`, `Mapel`, `Kelas Jadwal`, `Tanggal Ujian`, `Status`, `Jumlah Pelanggaran`, `Catatan Pelanggaran`, `Waktu Selesai`.

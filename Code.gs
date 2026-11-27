@@ -42,7 +42,8 @@ const SETTINGS_HEADERS = [
   'Folder ID Drive',
   'Sumber Data',
   'PIN Pengawas',
-  'PIN Admin'
+  'PIN Admin',
+  'Batas Pelanggaran'
 ];
 const MONITORING_HEADERS = [
   'ID Sesi',
@@ -192,14 +193,15 @@ function initializeSpreadsheetStructure() {
   const monSheet = ensureSheetWithHeaders_(ss, SHEET_MONITORING, MONITORING_HEADERS);
 
   if (setSheet.getLastRow() < 2) {
-    setSheet.getRange(2, 1, 1, 7).setValues([[
+    setSheet.getRange(2, 1, 1, 8).setValues([[
       DEFAULT_SETTINGS.namaSekolah,
       DEFAULT_SETTINGS.logo,
       DEFAULT_SETTINGS.kop,
       DEFAULT_SETTINGS.folderIdDrive,
       DEFAULT_SETTINGS.sumberData,
       DEFAULT_SETTINGS.pinPengawas,
-      getStoredAdminPin_()
+      getStoredAdminPin_(),
+      DEFAULT_MAX_VIOLATIONS
     ]]);
   } else {
     ensurePinColumnsInSheet_(setSheet);
@@ -1285,6 +1287,10 @@ function saveAppSettings(token, payload) {
     const maxViol = Number(payload.maxViolations);
     if (!isNaN(maxViol) && maxViol >= 0 && maxViol <= 20) {
       props.setProperty('MAX_VIOLATIONS', String(Math.floor(maxViol)));
+      try {
+        ensureHeaderCell_(sheet, cols['Batas Pelanggaran'], 'Batas Pelanggaran');
+        sheet.getRange(2, cols['Batas Pelanggaran']).setValue(Math.floor(maxViol));
+      } catch (eViol) {}
     }
     if (typeof payload.requireFullscreen === 'boolean') {
       props.setProperty('REQUIRE_FULLSCREEN', payload.requireFullscreen ? 'true' : 'false');
@@ -1415,12 +1421,16 @@ function ensurePinColumnsInSheet_(sheet) {
     const cols = getColumnMap_(sheet, SETTINGS_HEADERS);
     const proctorCol = cols['PIN Pengawas'];
     const adminCol = cols['PIN Admin'];
+    const violCol = cols['Batas Pelanggaran'];
 
     if (!String(sheet.getRange(1, proctorCol).getDisplayValue() || '').trim()) {
       sheet.getRange(1, proctorCol).setValue('PIN Pengawas');
     }
     if (!String(sheet.getRange(1, adminCol).getDisplayValue() || '').trim()) {
       sheet.getRange(1, adminCol).setValue('PIN Admin');
+    }
+    if (violCol && !String(sheet.getRange(1, violCol).getDisplayValue() || '').trim()) {
+      sheet.getRange(1, violCol).setValue('Batas Pelanggaran');
     }
 
     if (sheet.getLastRow() >= 2) {
@@ -1429,6 +1439,9 @@ function ensurePinColumnsInSheet_(sheet) {
       }
       if (!String(sheet.getRange(2, adminCol).getDisplayValue() || '').trim()) {
         sheet.getRange(2, adminCol).setNumberFormat('@').setValue(getStoredAdminPin_());
+      }
+      if (violCol && !String(sheet.getRange(2, violCol).getDisplayValue() || '').trim()) {
+        sheet.getRange(2, violCol).setValue(DEFAULT_MAX_VIOLATIONS);
       }
     }
   } catch (e) {}
@@ -2074,13 +2087,34 @@ function hasCustomAdminPin_() {
   return Boolean(stored && String(stored).trim() !== DEFAULT_ADMIN_PIN);
 }
 
-function getSecurityConfig_() {
+function getSecurityConfig_(optionalSs) {
+  let maxViol = null;
+  try {
+    const ss = optionalSs || getSpreadsheet_();
+    const sheet = ss.getSheetByName(SHEET_SETTINGS);
+    if (sheet && sheet.getLastRow() >= 2) {
+      const cols = getColumnMap_(sheet, SETTINGS_HEADERS);
+      const violCol = cols['Batas Pelanggaran'];
+      if (violCol) {
+        const cellVal = String(sheet.getRange(2, violCol).getDisplayValue() || '').trim();
+        if (cellVal !== '') {
+          const parsed = parseInt(cellVal, 10);
+          if (!isNaN(parsed) && parsed >= 0 && parsed <= 20) {
+            maxViol = parsed;
+          }
+        }
+      }
+    }
+  } catch (e) {}
+
   const props = PropertiesService.getScriptProperties();
-  const maxViolRaw = props.getProperty('MAX_VIOLATIONS');
+  if (maxViol === null) {
+    const maxViolRaw = props.getProperty('MAX_VIOLATIONS');
+    maxViol = (maxViolRaw !== null && !isNaN(parseInt(maxViolRaw, 10))) ? parseInt(maxViolRaw, 10) : DEFAULT_MAX_VIOLATIONS;
+  }
   const reqFsRaw = props.getProperty('REQUIRE_FULLSCREEN');
-  const maxViol = maxViolRaw !== null ? parseInt(maxViolRaw, 10) : DEFAULT_MAX_VIOLATIONS;
   return {
-    maxViolations: isNaN(maxViol) ? DEFAULT_MAX_VIOLATIONS : maxViol,
+    maxViolations: maxViol,
     requireFullscreen: reqFsRaw === null ? true : reqFsRaw !== 'false'
   };
 }
