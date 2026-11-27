@@ -7,7 +7,7 @@ Aplikasi serverless berbasis **Google Apps Script**, **Google Sheets Database**,
 ## Daftar Fitur Utama
 
 1. **Server-Side Template Inclusion (Scriptlet Pattern)**: `StyleCSS.html`, `Sidebar.html`, `Header.html`, `AppJS.html`.
-2. **Multi-Page Serverless Web App (MPA)** via Query Parameter Routing (`?page=portal|monitoring|laporan|kelola-soal|data-master|pengaturan`) dengan navigasi induk `window.top.location.href` anti blank putih.
+2. **Multi-Page Serverless Web App (MPA)** via Query Parameter Routing (`?page=portal|monitoring|laporan|kelola-soal|data-mapel|data-murid|pengaturan`) dengan navigasi induk `window.top.location.href` anti blank putih.
 3. **Web Publik Jadwal per Hari & Mode Anticurang Multi-User** (`Portal.html`):
    - Tampilan bersih khusus siswa (tanpa sidebar/login admin).
    - Kolom **Kelas** peserta pada modal konfirmasi otomatis terisi sesuai jadwal soal.
@@ -15,10 +15,10 @@ Aplikasi serverless berbasis **Google Apps Script**, **Google Sheets Database**,
 4. **Pemisahan Jam Buka vs Durasi Soal (Opsi B)**:
    - `Waktu Mulai` & `Waktu Selesai` mengatur kapan soal dapat dibuka dan batas terakhir siswa boleh membukanya.
    - Kolom **H (`Durasi (Menit)`)** menentukan durasi pengerjaan penuh dalam menit (misal `30`) terhitung sejak siswa membuka soal, tetap berjalan penuh meskipun melewati `Waktu Selesai` (kosongkan jika fleksibel).
-5. **Master Data Mapel & Data Murid** (`?page=data-master` & `?page=data-murid`):
-   - Kelola data mata pelajaran (`DB_Mapel`) dan data murid/peserta didik (`DB_Murid`).
-   - Opsi pilihan kelas pada form soal otomatis dihimpun dari daftar kelas unik yang terdaftar pada `DB_Murid`.
-   - Menu **Data Murid** dilengkapi fitur Tambah, Edit, Hapus, Filter per Kelas, Pencarian realtime, Impor Excel (`.xlsx`, `.xls`, `.csv`), dan Ekspor Excel (`.xls`).
+5. **Master Data Mapel & Data Murid** (`?page=data-mapel` & `?page=data-murid`):
+   - Kelola data mata pelajaran (`DataMapel.html`) dan data murid/peserta didik (`DataMurid.html`).
+   - Form Tambah/Edit Soal dilengkapi nomor otomatis yang menghitung kelanjutan data di database, serta input Kelas dan Mapel yang dapat dipilih maupun diketik (searchable datalist).
+   - Pada modal siswa, Nama Lengkap Siswa dapat dipilih via daftar maupun diketik untuk mencari nama secara instan, dan NIS otomatis terisi sesuai siswa terpilih.
 6. **Three-Tier / Two-Tier Access Control**:
    - **Publik / Siswa**, **Pengawas Ruang** (Monitoring, Laporan, dan PIN buka kunci peserta), dan **Administrator** (akses penuh termasuk Kelola Link Soal, Data Mapel & Kelas, Hapus Log, dan Pengaturan Sistem).
 7. **SheetJS Excel Processing & Dynamic Adaptive Print / PDF Engine** (`Laporan.html`):

@@ -151,11 +151,20 @@
                 <label class="block text-xs font-bold text-slate-600">Nama Lengkap Siswa <span class="text-red-600">*</span></label>
                 <span id="student-name-auto-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Sesuai kelas</span>
               </div>
-              <select id="student-name-select" onchange="handlePortalStudentSelect()" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
-                <option value="">-- Pilih Nama Siswa --</option>
-              </select>
-              <input id="student-name-input" type="text" minlength="2" placeholder="Nama lengkap..."
-                class="hidden w-full text-sm px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+              <div class="relative">
+                <input id="student-name-input" list="student-name-list" type="text" required minlength="2"
+                  placeholder="Ketik atau pilih nama siswa..." autocomplete="off"
+                  oninput="handlePortalStudentInput()"
+                  onchange="handlePortalStudentInput()"
+                  onclick="try { this.showPicker(); } catch(e) {}"
+                  class="w-full text-sm px-3 py-2 pr-9 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+                <datalist id="student-name-list"></datalist>
+                <button type="button" tabindex="-1" onclick="focusAndShowPicker('student-name-input')"
+                  class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600" title="Buka Daftar Siswa">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+              </div>
+              <select id="student-name-select" onchange="handlePortalStudentSelect()" class="hidden"></select>
             </div>
             <div>
               <div class="flex items-center justify-between gap-2 mb-1">
@@ -605,6 +614,7 @@
     function populatePortalStudentSelectForClass(classQuery, waitForClassPick) {
       const nameSelect = document.getElementById('student-name-select');
       const nameInput = document.getElementById('student-name-input');
+      const nameDatalist = document.getElementById('student-name-list');
       const nameBadge = document.getElementById('student-name-auto-badge');
       const nisInput = document.getElementById('student-nis-input');
       const nisBadge = document.getElementById('student-nis-auto-badge');
@@ -613,12 +623,11 @@
       portalState.activeClassStudents = matched.list || [];
 
       if (waitForClassPick && !classQuery) {
-        nameSelect.classList.remove('hidden');
-        nameSelect.required = true;
-        nameSelect.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
-        nameInput.classList.add('hidden');
-        nameInput.required = false;
+        if (nameDatalist) nameDatalist.innerHTML = '';
+        if (nameSelect) nameSelect.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
         nameInput.value = '';
+        nameInput.placeholder = 'Pilih kelas terlebih dahulu...';
+        nameInput.readOnly = true;
         nameBadge.classList.add('hidden');
         nisInput.value = '';
         nisInput.readOnly = true;
@@ -627,28 +636,33 @@
         return;
       }
 
+      nameInput.readOnly = false;
       if (portalState.activeClassStudents.length > 0) {
-        nameInput.classList.add('hidden');
-        nameInput.required = false;
-        nameSelect.classList.remove('hidden');
-        nameSelect.required = true;
         nameBadge.classList.remove('hidden');
+        nameInput.placeholder = 'Ketik atau pilih nama siswa (' + portalState.activeClassStudents.length + ' siswa)...';
 
-        nameSelect.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>' +
-          portalState.activeClassStudents.map(function (st, idx) {
-            const label = matched.exact ? st.nama : (st.nama + ' (' + st.kelas + ')');
-            return '<option value="' + idx + '">' + escapeHtml(label) + '</option>';
+        if (nameDatalist) {
+          nameDatalist.innerHTML = portalState.activeClassStudents.map(function (st) {
+            const extra = st.nis ? (' • NIS: ' + st.nis) : '';
+            return '<option value="' + escapeHtml(st.nama) + '">' + escapeHtml(st.nama + extra) + '</option>';
           }).join('');
+        }
+        if (nameSelect) {
+          nameSelect.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>' +
+            portalState.activeClassStudents.map(function (st, idx) {
+              return '<option value="' + idx + '">' + escapeHtml(st.nama) + '</option>';
+            }).join('');
+        }
 
-        const lastSavedName = (safeStorageGet('anticurang_last_name') || '').trim().toLowerCase();
-        const savedIdx = portalState.activeClassStudents.findIndex(function (st) {
-          return st.nama.toLowerCase() === lastSavedName;
-        });
-        if (savedIdx !== -1) {
-          nameSelect.value = String(savedIdx);
-          handlePortalStudentSelect();
+        const lastSavedName = (safeStorageGet('anticurang_last_name') || '').trim();
+        const found = lastSavedName ? portalState.activeClassStudents.find(function (st) {
+          return st.nama.toLowerCase() === lastSavedName.toLowerCase();
+        }) : null;
+
+        if (found) {
+          nameInput.value = found.nama;
+          handlePortalStudentInput();
         } else {
-          nameSelect.value = '';
           nameInput.value = '';
           nisInput.value = '';
           nisInput.readOnly = true;
@@ -657,10 +671,9 @@
           nisBadge.classList.remove('hidden');
         }
       } else {
-        nameSelect.classList.add('hidden');
-        nameSelect.required = false;
-        nameInput.classList.remove('hidden');
-        nameInput.required = true;
+        if (nameDatalist) nameDatalist.innerHTML = '';
+        if (nameSelect) nameSelect.innerHTML = '';
+        nameInput.placeholder = 'Ketik nama lengkap siswa...';
         nameBadge.classList.add('hidden');
         nameInput.value = safeStorageGet('anticurang_last_name') || '';
 
@@ -672,29 +685,66 @@
       }
     }
 
-    function handlePortalStudentSelect() {
-      const nameSelect = document.getElementById('student-name-select');
+    function handlePortalStudentInput() {
       const nameInput = document.getElementById('student-name-input');
       const nisInput = document.getElementById('student-nis-input');
       const nisBadge = document.getElementById('student-nis-auto-badge');
       const classInput = document.getElementById('student-class-input');
-      const idxStr = nameSelect.value;
+      const typed = (nameInput.value || '').trim();
 
-      if (idxStr === '') {
-        nameInput.value = '';
+      if (!typed) {
         nisInput.value = '';
+        nisInput.placeholder = 'Otomatis sesuai nama';
+        if (nisBadge) nisBadge.classList.add('hidden');
         return;
       }
-      const chosen = portalState.activeClassStudents[Number(idxStr)];
-      if (!chosen) return;
-      nameInput.value = chosen.nama || '';
-      nisInput.value = chosen.nis || '-';
-      nisInput.readOnly = true;
-      nisInput.className = 'w-full text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-100 text-slate-700 font-mono font-semibold outline-none cursor-not-allowed';
-      nisBadge.classList.remove('hidden');
-      if (chosen.kelas) {
-        classInput.value = chosen.kelas;
+
+      const typedLower = typed.toLowerCase();
+      const students = portalState.activeClassStudents || [];
+      const matched = students.find(function (s) {
+        return s.nama.toLowerCase() === typedLower;
+      });
+
+      if (matched) {
+        nisInput.value = matched.nis || '-';
+        nisInput.readOnly = true;
+        nisInput.className = 'w-full text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-100 text-slate-700 font-mono font-semibold outline-none cursor-not-allowed';
+        if (nisBadge) {
+          nisBadge.classList.remove('hidden');
+          nisBadge.textContent = 'Otomatis: ' + (matched.nis || '-');
+        }
+        if (matched.kelas && !classInput.value) {
+          classInput.value = matched.kelas;
+        }
+      } else {
+        if (students.length === 0) {
+          nisInput.readOnly = false;
+          nisInput.className = 'w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none';
+          if (nisBadge) nisBadge.classList.add('hidden');
+        } else {
+          nisInput.value = '';
+          nisInput.placeholder = 'Otomatis saat nama cocok...';
+          if (nisBadge) nisBadge.classList.add('hidden');
+        }
       }
+    }
+
+    function handlePortalStudentSelect() {
+      const nameSelect = document.getElementById('student-name-select');
+      const idxStr = nameSelect.value;
+      if (idxStr !== '' && portalState.activeClassStudents[Number(idxStr)]) {
+        document.getElementById('student-name-input').value = portalState.activeClassStudents[Number(idxStr)].nama;
+      }
+      handlePortalStudentInput();
+    }
+
+    function focusAndShowPicker(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.focus();
+      try {
+        if (typeof el.showPicker === 'function') el.showPicker();
+      } catch (e) {}
     }
 
     function closeExamRulesModal() {

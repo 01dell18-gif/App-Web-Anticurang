@@ -85,8 +85,9 @@ const ROUTE_MAP = {
   'monitoring': 'Monitoring',
   'laporan': 'Laporan',
   'kelola-soal': 'KelolaSoal',
-  'data-master': 'DataMaster',
-  'data-mapel': 'DataMaster',
+  'data-mapel': 'DataMapel',
+  'data-master': 'DataMapel',
+  'mapel': 'DataMapel',
   'data-murid': 'DataMurid',
   'murid': 'DataMurid',
   'pengaturan': 'Pengaturan'
@@ -106,6 +107,8 @@ function doGet(e) {
     _activePage = 'portal';
   } else if (requested === 'admin' || requested === 'pengawas') {
     _activePage = 'monitoring';
+  } else if (requested === 'data-master') {
+    _activePage = 'data-mapel';
   } else {
     _activePage = ROUTE_MAP[requested] ? requested : 'portal';
   }

@@ -51,7 +51,7 @@
             <a id="ks-sheet-link" href="#" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-table mr-1"></i> Google Sheet
             </a>
-            <button type="button" onclick="navigateTo('data-master')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+            <button type="button" onclick="navigateTo('data-mapel')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-book-open mr-1"></i> Data Mapel
             </button>
             <button type="button" onclick="navigateTo('data-murid')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
@@ -102,28 +102,42 @@
           <input id="exam-row-index" type="hidden">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">No (Opsional)</label>
-              <input id="exam-no" type="text" placeholder="Otomatis" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+              <label class="block text-xs font-bold text-slate-600 mb-1">No (Otomatis)</label>
+              <input id="exam-no" type="text" placeholder="Otomatis" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500 font-semibold text-slate-800">
             </div>
             <div>
               <div class="flex items-center justify-between gap-2 mb-1">
                 <label class="block text-xs font-bold text-slate-600">Kelas <span class="text-red-600">*</span></label>
                 <button type="button" onclick="navigateTo('data-murid')" class="text-[11px] font-bold text-brand-600 hover:underline">+ Data Murid</button>
               </div>
-              <select id="exam-kelas" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
-                <option value="">-- Pilih Kelas --</option>
-              </select>
+              <div class="relative">
+                <input id="exam-kelas" list="exam-kelas-list" required placeholder="Pilih atau ketik kelas..." autocomplete="off"
+                  onclick="try { this.showPicker(); } catch(e) {}"
+                  class="w-full text-sm px-3 py-2 pr-9 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
+                <datalist id="exam-kelas-list"></datalist>
+                <button type="button" tabindex="-1" onclick="focusAndShowPicker('exam-kelas')"
+                  class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600" title="Buka Pilihan Kelas">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+              </div>
             </div>
           </div>
 
           <div>
             <div class="flex items-center justify-between gap-2 mb-1">
               <label class="block text-xs font-bold text-slate-600">Mata Pelajaran (Mapel) <span class="text-red-600">*</span></label>
-              <button type="button" onclick="navigateTo('data-master')" class="text-[11px] font-bold text-brand-600 hover:underline">+ Kelola Mapel</button>
+              <button type="button" onclick="navigateTo('data-mapel')" class="text-[11px] font-bold text-brand-600 hover:underline">+ Kelola Mapel</button>
             </div>
-            <select id="exam-mapel" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
-              <option value="">-- Pilih Mata Pelajaran --</option>
-            </select>
+            <div class="relative">
+              <input id="exam-mapel" list="exam-mapel-list" required placeholder="Pilih atau ketik mata pelajaran..." autocomplete="off"
+                onclick="try { this.showPicker(); } catch(e) {}"
+                class="w-full text-sm px-3 py-2 pr-9 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
+              <datalist id="exam-mapel-list"></datalist>
+              <button type="button" tabindex="-1" onclick="focusAndShowPicker('exam-mapel')"
+                class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600" title="Buka Pilihan Mapel">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+            </div>
           </div>
 
           <div>
@@ -228,39 +242,34 @@
       const mapelItems = ksState.masterMapel.map(function (m) { return m.namaMapel; });
       const kelasItems = ksState.masterKelas.map(function (k) { return k.kelas; });
 
-      populateSelect(
-        'exam-mapel',
-        mapelItems,
-        mapelItems.length ? '-- Pilih Mata Pelajaran --' : '-- Belum ada Mata Pelajaran --',
-        true
-      );
-      populateSelect(
-        'exam-kelas',
-        kelasItems,
-        kelasItems.length ? '-- Pilih Kelas --' : '-- Belum ada Kelas --',
-        true
-      );
+      populateDatalist('exam-mapel-list', mapelItems);
+      populateDatalist('exam-kelas-list', kelasItems);
 
-      ensureLegacySelectOption('exam-mapel', selectedMapel);
-      ensureLegacySelectOption('exam-kelas', selectedKelas);
+      document.getElementById('exam-mapel').value = selectedMapel || '';
+      document.getElementById('exam-kelas').value = selectedKelas || '';
     }
 
-    function ensureLegacySelectOption(selectId, val) {
-      const sel = document.getElementById(selectId);
-      const cleanVal = String(val || '').trim();
-      if (!sel) return;
-      if (!cleanVal) {
-        sel.value = '';
-        return;
-      }
-      const exists = Array.prototype.some.call(sel.options, function (opt) { return opt.value === cleanVal; });
-      if (!exists) {
-        const opt = document.createElement('option');
-        opt.value = cleanVal;
-        opt.textContent = cleanVal + ' (Data Lama)';
-        sel.appendChild(opt);
-      }
-      sel.value = cleanVal;
+    function populateDatalist(id, items) {
+      const dl = document.getElementById(id);
+      if (!dl) return;
+      const seen = {};
+      dl.innerHTML = (items || []).filter(function (val) {
+        const s = String(val || '').trim();
+        if (!s || seen[s.toLowerCase()]) return false;
+        seen[s.toLowerCase()] = true;
+        return true;
+      }).map(function (s) {
+        return '<option value="' + escapeHtml(s) + '"></option>';
+      }).join('');
+    }
+
+    function focusAndShowPicker(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.focus();
+      try {
+        if (typeof el.showPicker === 'function') el.showPicker();
+      } catch (e) {}
     }
 
     function renderExamsTable() {
@@ -331,7 +340,13 @@
         syncExamFormSelectOptions(ex.mapel, ex.kelas);
       } else {
         document.getElementById('exam-row-index').value = '';
-        document.getElementById('exam-no').value = '';
+        let maxNo = 0;
+        (ksState.exams || []).forEach(function (item) {
+          const n = parseInt(String(item.no || '').trim(), 10);
+          if (!isNaN(n) && n > maxNo) maxNo = n;
+        });
+        const nextNo = (maxNo > 0) ? (maxNo + 1) : ((ksState.exams || []).length + 1);
+        document.getElementById('exam-no').value = nextNo;
         document.getElementById('exam-link').value = '';
         document.getElementById('exam-tanggal').value = todayIsoLocal();
         document.getElementById('exam-mulai').value = '07:30';
