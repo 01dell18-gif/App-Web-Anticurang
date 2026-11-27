@@ -24,10 +24,10 @@ Aplikasi ujian daring (*online assessment*) serverless berbasis **Google Apps Sc
    - **Audio Alarm Peringatan**: Membunyikan nada sirine peringatan saat terjadi pelanggaran.
    - **Overlay Kunci Pengawas**: Jika batas toleransi pelanggaran tercapai, layar terkunci permanen dan hanya dapat dibuka oleh Pengawas Ruang menggunakan PIN Pengawas 6 digit.
    - **Pencatatan Real-Time**: Setiap pelanggaran dan waktu mulai/selesai dicatat langsung ke sheet `Log_Monitoring`.
-5. **Graceful Time-Up Protection (Penanganan Waktu Habis & Submit Google Form)**:
+5. **Graceful Time-Up Protection (Penanganan Waktu Habis, Toleransi 1 Menit & Auto-Close)**:
    - Dilengkapi *countdown timer* interaktif pada topbar ujian.
    - **Pengingat Sisa Waktu 2 Menit & 1 Menit**: Ketika sisa waktu mencapai 2 menit dan 1 menit, sistem memunculkan popup pengingat ramah disertai nada chime lembut dan indikator timer berkedip. Notifikasi ini dilindungi secara khusus sehingga kemunculan maupun klik tombol murid **dikecualikan 100% dari hitungan pelanggaran**.
-   - Ketika waktu ujian habis, sistem memunculkan dialog peringatan interaktif dan memberikan tombol pintas untuk langsung fokus ke lembar Google Form agar siswa dapat segera menekan tombol **Kirim / Submit** sebelum sesi ditutup otomatis.
+   - **Toleransi Pengiriman 1 Menit & Penutupan Otomatis (Auto-Close)**: Saat durasi utama habis (`00:00:00`), sistem memberikan **tambahan waktu toleransi 1 menit (60 detik)** khusus untuk menekan tombol **Kirim / Submit** pada Google Form. Jika dalam 1 menit tambahan ini siswa belum mengirim juga, sistem akan **otomatis menutup soal seketika** dan mencatat sesi di monitoring sebagai `"Selesai (Waktu Habis Otomatis)"`.
 6. **Pemisahan Jam Buka vs Durasi Soal (Opsi B)**:
    - `Waktu Mulai` & `Waktu Selesai` mengatur jendela waktu kapan siswa diperbolehkan membuka soal.
    - Kolom **H (`Durasi (Menit)`)** menentukan batas waktu pengerjaan perorangan dalam menit (misal `30`) yang mulai dihitung mundur saat siswa mengklik *Buka Soal*, tetap berjalan penuh meskipun melewati `Waktu Selesai` (kosongkan jika durasi fleksibel).

@@ -265,14 +265,14 @@ Google Form berada di dalam `<iframe>` bersumber dari `docs.google.com`, sedangk
 
 ### Solusi Perlindungan Jawaban Murid
 
-Alih-alih langsung menutup paksa halaman dan menghapus iframe saat waktu habis (`00:00:00`), sistem menerapkan alur penyelamatan jawaban:
+Alih-alih langsung menutup paksa halaman seketika saat durasi utama habis (`00:00:00`), sistem menerapkan alur penyelamatan jawaban dengan **toleransi 1 menit & auto-close**:
 
 1. Formulir Google Form **tetap dibiarkan aktif di layar**.
 2. Alarm peringatan berbunyi dan muncul modal dialog mencolok:
-   > *"⏰ **WAKTU UJIAN TELAH HABIS!** Segera gulir ke bagian paling bawah Google Form dan klik tombol **Kirim / Submit** sekarang juga agar jawaban tersimpan ke sistem guru."*
-3. Di bilah atas runner muncul spanduk merah berkedip sebagai pengingat darurat.
-4. Siswa memiliki kesempatan penuh untuk menekan tombol **"Kirim"** pada Google Form.
-5. Setelah formulir terkirim, siswa menekan tombol **"Saya Sudah Kirim & Selesai"**. Sesi ditutup secara tertib dan tercatat di Dashboard Monitoring sebagai status `"Selesai (Waktu Habis)"`.
+   > *"⏰ **WAKTU UTAMA TELAH HABIS!** Sistem memberikan **tambahan waktu toleransi 1 menit** khusus untuk menggulir ke bagian bawah Google Form dan menekan tombol **Kirim / Submit**. Jika dalam 1 menit tidak mengirim, soal otomatis ditutup permanen!"*
+3. Di bilah atas runner muncul spanduk merah berkedip dengan hitung mundur toleransi: `Toleransi Kirim: 01:00 ... 00:00`.
+4. **Jika siswa menekan Kirim dalam 1 menit**: Siswa mengklik tombol *"Saya Sudah Kirim & Selesai"*, sesi ditutup tertib dan tercatat sebagai status `"Selesai (Waktu Habis)"`.
+5. **Jika waktu 1 menit toleransi habis**: Sistem seketika **menutup soal secara otomatis (Force Auto-Close)**, mengosongkan iframe, keluar dari mode fullscreen, dan mencatat ke database monitoring dengan status `"Selesai (Waktu Habis Otomatis)"`.
 
 ### Pengingat Sisa Waktu 2 Menit & 1 Menit (Bebas Pelanggaran)
 
