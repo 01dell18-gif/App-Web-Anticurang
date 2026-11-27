@@ -1,29 +1,54 @@
-# Sistem Portal Ujian Google Form Anticurang & Monitoring (Arsitektur SIGURU v3.0)
+# Sistem Portal Ujian Google Form Mode Anticurang & Dashboard Monitoring Real-Time
 
-Aplikasi serverless berbasis **Google Apps Script**, **Google Sheets Database**, dan **Google Drive Storage** yang responsif untuk **Desktop & Mobile (`100dvh`)**, dengan pemisahan total antara **Web Publik (Siswa)** dan **Dashboard Kontrol (Admin / Pengawas)**.
+Aplikasi ujian daring (*online assessment*) serverless berbasis **Google Apps Script**, **Google Sheets Database**, dan **Google Drive Storage** yang responsif untuk **Desktop, Tablet & Mobile (`100dvh`)**. Mengintegrasikan Google Form ke dalam lingkungan proteksi ujian (*anti-cheat lockdown*), pemantauan kehadiran dan pelanggaran peserta secara real-time, serta pemisahan hak akses antara **Web Publik (Siswa)** dan **Dashboard Pengawas / Administrator**.
 
 ---
 
 ## Daftar Fitur Utama
 
-1. **Server-Side Template Inclusion (Scriptlet Pattern)**: `StyleCSS.html`, `Sidebar.html`, `Header.html`, `AppJS.html`.
-2. **Multi-Page Serverless Web App (MPA)** via Query Parameter Routing (`?page=portal|monitoring|laporan|kelola-soal|data-mapel|data-murid|pengaturan`) dengan navigasi induk `window.top.location.href` anti blank putih.
-3. **Web Publik Jadwal per Hari & Mode Anticurang Multi-User** (`Portal.html`):
-   - Tampilan bersih khusus siswa (tanpa sidebar/login admin).
-   - Kolom **Kelas** peserta pada modal konfirmasi otomatis terisi sesuai jadwal soal.
-   - Kunci layar penuh (*Fullscreen*), deteksi pindah tab/jendela, blokir klik kanan/salin-tempel/DevTools, audio peringatan, overlay kunci pengawas, serta pencatatan realtime ke `Log_Monitoring`.
-4. **Pemisahan Jam Buka vs Durasi Soal (Opsi B)**:
-   - `Waktu Mulai` & `Waktu Selesai` mengatur kapan soal dapat dibuka dan batas terakhir siswa boleh membukanya.
-   - Kolom **H (`Durasi (Menit)`)** menentukan durasi pengerjaan penuh dalam menit (misal `30`) terhitung sejak siswa membuka soal, tetap berjalan penuh meskipun melewati `Waktu Selesai` (kosongkan jika fleksibel).
-5. **Master Data Mapel & Data Murid** (`?page=data-mapel` & `?page=data-murid`):
-   - Kelola data mata pelajaran (`DataMapel.html`) dan data murid/peserta didik (`DataMurid.html`).
-   - Form Tambah/Edit Soal dilengkapi nomor otomatis yang menghitung kelanjutan data di database, serta input Kelas dan Mapel yang dapat dipilih maupun diketik (searchable datalist).
-   - Pada modal siswa, Nama Lengkap Siswa dapat dipilih via daftar maupun diketik untuk mencari nama secara instan, dan NIS otomatis terisi sesuai siswa terpilih.
-6. **Three-Tier / Two-Tier Access Control**:
-   - **Publik / Siswa**, **Pengawas Ruang** (Monitoring, Laporan, dan PIN buka kunci peserta), dan **Administrator** (akses penuh termasuk Kelola Link Soal, Data Mapel & Kelas, Hapus Log, dan Pengaturan Sistem).
-7. **SheetJS Excel Processing & Dynamic Adaptive Print / PDF Engine** (`Laporan.html`):
-   - Ekspor `.xls` (BIFF8) di Monitoring, Laporan, dan Kelola Soal; Impor Excel jadwal soal; Smart Kop Divider otomatis untuk gambar maupun teks.
-8. **Dual-Mode Logo & Kop Surat Ingestion** (`Pengaturan.html`): Mode URL Google Drive/Gambar vs Mode Unggah Berkas ke Google Drive.
+1. **Multi-Page Serverless Web App (MPA) Architecture**:
+   - Routing dinamis melalui parameter URL query (`?page=portal|monitoring|laporan|kelola-soal|data-mapel|data-murid|pengaturan`).
+   - Navigasi antar halaman menggunakan `window.top.location.href` untuk menjamin transisi mulus dan bebas dari masalah *blank screen* pada iframe Google Apps Script.
+2. **Server-Side Template Inclusion (Scriptlet Pattern)**:
+   - Modularitas kode UI terbagi rapi ke dalam komponen `StyleCSS.html`, `Sidebar.html`, `Header.html`, dan `AppJS.html` yang di-inject di server-side via `HtmlService.createTemplateFromFile()`.
+3. **Web Publik Jadwal Ujian & Searchable Filter Kelas (`Portal.html`)**:
+   - Tampilan bersih khusus siswa tanpa sidebar maupun menu login admin.
+   - Filter tab status otomatis aktif pada tab **Sedang Berlangsung** saat halaman pertama kali dibuka.
+   - Filter Kelas dilengkapi **Searchable Combobox** yang dapat diketik secara bebas (*type to search*) maupun dipilih dari menu dropdown untuk mempercepat pencarian jadwal di sekolah besar.
+   - Modal konfirmasi ujian otomatis mengunci pilihan Kelas sesuai jadwal soal, serta menyediakan pencarian instan nama siswa yang otomatis mengisi NIS/Nomor Peserta secara aman (`readOnly`).
+4. **Anti-Cheat Lockdown & Violation Engine**:
+   - **Kunci Layar Penuh (*Fullscreen Enforcement*)**: Memaksa siswa tetap di layar penuh saat mengerjakan soal.
+   - **Deteksi Berpindah Tab/Aplikasi**: Mengawasi peristiwa `blur` dan `visibilitychange` jendela peramban.
+   - **Proteksi Akses**: Memblokir klik kanan (*context menu*), tombol F12 / pintasan Developer Tools, serta fungsi salin-tempel (*copy-paste*).
+   - **Watermark Dinamis Anti-Screenshot**: Menampilkan identitas peserta, mapel, dan label perlindungan berlatar transparan di atas lembar soal.
+   - **Audio Alarm Peringatan**: Membunyikan nada sirine peringatan saat terjadi pelanggaran.
+   - **Overlay Kunci Pengawas**: Jika batas toleransi pelanggaran tercapai, layar terkunci permanen dan hanya dapat dibuka oleh Pengawas Ruang menggunakan PIN Pengawas 6 digit.
+   - **Pencatatan Real-Time**: Setiap pelanggaran dan waktu mulai/selesai dicatat langsung ke sheet `Log_Monitoring`.
+5. **Graceful Time-Up Protection (Penanganan Waktu Habis & Submit Google Form)**:
+   - Dilengkapi *countdown timer* interaktif pada topbar ujian.
+   - Ketika waktu ujian habis, sistem memunculkan dialog peringatan interaktif dan memberikan tombol pintas untuk langsung fokus ke lembar Google Form agar siswa dapat segera menekan tombol **Kirim / Submit** sebelum sesi ditutup otomatis.
+6. **Pemisahan Jam Buka vs Durasi Soal (Opsi B)**:
+   - `Waktu Mulai` & `Waktu Selesai` mengatur jendela waktu kapan siswa diperbolehkan membuka soal.
+   - Kolom **H (`Durasi (Menit)`)** menentukan batas waktu pengerjaan perorangan dalam menit (misal `30`) yang mulai dihitung mundur saat siswa mengklik *Buka Soal*, tetap berjalan penuh meskipun melewati `Waktu Selesai` (kosongkan jika durasi fleksibel).
+7. **Master Data Mapel & Data Murid** (`?page=data-mapel` & `?page=data-murid`):
+   - Manajemen CRUD data mata pelajaran (`DB_Mapel`) dan data siswa (`DB_Murid`).
+   - Form Tambah/Edit Soal dilengkapi penomoran otomatis yang menghitung kelanjutan data di database, serta input Kelas dan Mapel yang dapat dipilih maupun diketik (searchable datalist).
+   - Impor dan ekspor data siswa maupun jadwal soal via format file Excel (`.xlsx` / `.xls`).
+8. **Dashboard Monitoring Real-Time & Ikon Tombol Aksi Modern** (`Monitoring.html` & `KelolaSoal.html`):
+   - Kartu metrik live: Total Sesi, Sedang Aktif, Terkunci, dan Selesai.
+   - Pemantauan tabel status siswa lengkap dengan jumlah dan catatan pelanggaran secara berkala.
+   - Seluruh tombol aksi tabel (**Edit** dan **Hapus**) telah diperbarui menggunakan **SVG Icon modern** yang responsif, intuitif, dan hemat ruang.
+9. **Laporan Pelaksanaan & Cetak PDF Dinamis** (`Laporan.html`):
+   - Filter cetak berdasarkan tanggal, mata pelajaran, dan kelas.
+   - Input nama pengawas dan NIP dinamis: Saat diisi, teks nama dan NIP tampil rapi tanpa garis bawah potong; saat dikosongkan, garis titik-titik tanda tangan otomatis muncul.
+   - Smart Kop Surat: Mendukung mode gambar logo instansi maupun susunan teks kop surat otomatis dengan garis pembatas dinamis.
+10. **Akselerasi Cache (`CacheService`) & Portabilitas Database Dinamis**:
+    - Cache memori server 60 detik untuk jadwal dan daftar murid, memangkas latensi pembacaan data hingga **< 30 milidetik** saat ratusan siswa mengakses secara serentak.
+    - Database Spreadsheet dapat diganti kapan saja dari menu **Pengaturan Sistem** tanpa perlu mengubah kode sumber `Code.gs`. Mendukung pula mekanisme *Make a copy* (Container-Bound) secara otomatis.
+11. **Multi-Tier Access Control**:
+    - **Publik / Siswa**: Mengakses Portal Jadwal Ujian dan mengerjakan soal.
+    - **Pengawas Ruang**: Akses pemantauan Monitoring, cetak Laporan PDF, dan input PIN buka kunci layar peserta ujian.
+    - **Administrator**: Akses penuh ke seluruh fitur termasuk Kelola Soal, Data Mapel, Data Murid, Hapus Log Riwayat, dan Pengaturan Sistem.
 
 ---
 
