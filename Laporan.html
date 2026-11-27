@@ -25,35 +25,54 @@
       </section>
 
       <section id="lap-content" class="hidden space-y-5">
-        <!-- Toolbar Cetak (Hidden Saat Print) -->
-        <div class="no-print bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
-          <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 w-full">
-            <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[175px]">
-              <input id="lap-mapel-filter" type="text" list="list-lap-mapel" autocomplete="off"
-                placeholder="-- Semua Mapel --" onfocus="this.select()" oninput="renderReportDocument()"
-                class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 outline-none">
-              <datalist id="list-lap-mapel"></datalist>
-              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
+        <!-- Toolbar Cetak & Identitas Pengawas (Hidden Saat Print) -->
+        <div class="no-print bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-xs space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 w-full">
+              <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[175px]">
+                <input id="lap-mapel-filter" type="text" list="list-lap-mapel" autocomplete="off"
+                  placeholder="-- Semua Mapel --" onfocus="this.select()" oninput="renderReportDocument()"
+                  class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+                <datalist id="list-lap-mapel"></datalist>
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
+              </div>
+
+              <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[165px]">
+                <input id="lap-kelas-filter" type="text" list="list-lap-kelas" autocomplete="off"
+                  placeholder="-- Semua Kelas --" onfocus="this.select()" oninput="renderReportDocument()"
+                  class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+                <datalist id="list-lap-kelas"></datalist>
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
+              </div>
+
+              <input id="lap-date-filter" type="date" onchange="renderReportDocument()" class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 outline-none">
             </div>
 
-            <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[165px]">
-              <input id="lap-kelas-filter" type="text" list="list-lap-kelas" autocomplete="off"
-                placeholder="-- Semua Kelas --" onfocus="this.select()" oninput="renderReportDocument()"
-                class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 outline-none">
-              <datalist id="list-lap-kelas"></datalist>
-              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="exportReportExcel()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+                <i class="fa-solid fa-file-excel mr-1"></i> Ekspor .xls
+              </button>
+              <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+                <i class="fa-solid fa-print mr-1"></i> Cetak / Simpan PDF
+              </button>
             </div>
-
-            <input id="lap-date-filter" type="date" onchange="renderReportDocument()" class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 outline-none">
           </div>
 
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="exportReportExcel()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
-              <i class="fa-solid fa-file-excel mr-1"></i> Ekspor .xls
-            </button>
-            <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
-              <i class="fa-solid fa-print mr-1"></i> Cetak / Simpan PDF
-            </button>
+          <!-- Baris Input Manual TTD Pengawas & NIP -->
+          <div class="pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+            <span class="text-slate-600 font-bold flex items-center gap-1.5 shrink-0">
+              <i class="fa-solid fa-user-pen text-brand-600"></i> Pengawas Ujian:
+            </span>
+            <div class="flex-1 min-w-[200px]">
+              <input id="lap-proctor-name" type="text" oninput="handleProctorSignatureChange()"
+                placeholder="Nama Pengawas (misal: Drs. Ahmad Fauzi, M.Pd)"
+                class="w-full text-xs sm:text-sm py-1.5 px-3 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-brand-500 outline-none transition-colors">
+            </div>
+            <div class="w-full sm:w-[240px]">
+              <input id="lap-proctor-nip" type="text" oninput="handleProctorSignatureChange()"
+                placeholder="NIP Pengawas (opsional)"
+                class="w-full text-xs sm:text-sm py-1.5 px-3 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-brand-500 outline-none transition-colors">
+            </div>
           </div>
         </div>
 
@@ -101,10 +120,11 @@
               <div><b>Sumber Data:</b> <span id="lap-footer-source">-</span></div>
               <div id="lap-printed-at" class="font-mono text-[11px]">Dicetak pada: -</div>
             </div>
-            <div class="text-center min-w-[200px]">
+            <div class="text-center min-w-[220px] max-w-[300px]">
               <div>Pengawas / Koordinator Ujian,</div>
               <div class="h-16"></div>
-              <div class="font-bold text-slate-900 border-t border-slate-400 pt-1">__________________________</div>
+              <div id="lap-sig-name" class="font-bold text-slate-900 border-t border-slate-400 pt-1 text-xs sm:text-sm">__________________________</div>
+              <div id="lap-sig-nip" class="text-[11px] text-slate-700 font-mono mt-0.5 hidden">NIP. -</div>
             </div>
           </div>
         </div>
@@ -118,6 +138,7 @@
     const lapState = { rows: [], settings: null };
 
     window.onPageReady = async function () {
+      initProctorSignature();
       const ok = await ensureAdminAuthenticated();
       if (!ok) {
         document.getElementById('lap-auth-guard').classList.remove('hidden');
@@ -132,6 +153,49 @@
       document.getElementById('lap-content').classList.remove('hidden');
       await loadReportData();
     };
+
+    function handleProctorSignatureChange() {
+      const nameInput = document.getElementById('lap-proctor-name');
+      const nipInput = document.getElementById('lap-proctor-nip');
+      const nameVal = (nameInput ? nameInput.value : '').trim();
+      const nipVal = (nipInput ? nipInput.value : '').trim();
+
+      safeStorageSet('anticurang_lap_proctor_name', nameVal);
+      safeStorageSet('anticurang_lap_proctor_nip', nipVal);
+
+      const sigNameEl = document.getElementById('lap-sig-name');
+      const sigNipEl = document.getElementById('lap-sig-nip');
+
+      if (sigNameEl) {
+        if (nameVal) {
+          sigNameEl.textContent = nameVal;
+          sigNameEl.className = 'font-bold text-slate-900 border-t border-slate-800 pt-1 text-xs sm:text-sm';
+        } else {
+          sigNameEl.textContent = '__________________________';
+          sigNameEl.className = 'font-bold text-slate-900 border-t border-slate-400 pt-1 text-xs sm:text-sm';
+        }
+      }
+
+      if (sigNipEl) {
+        if (nipVal) {
+          sigNipEl.textContent = 'NIP. ' + nipVal;
+          sigNipEl.classList.remove('hidden');
+        } else {
+          sigNipEl.textContent = '';
+          sigNipEl.classList.add('hidden');
+        }
+      }
+    }
+
+    function initProctorSignature() {
+      const savedName = safeStorageGet('anticurang_lap_proctor_name') || '';
+      const savedNip = safeStorageGet('anticurang_lap_proctor_nip') || '';
+      const nameInput = document.getElementById('lap-proctor-name');
+      const nipInput = document.getElementById('lap-proctor-nip');
+      if (nameInput) nameInput.value = savedName;
+      if (nipInput) nipInput.value = savedNip;
+      handleProctorSignatureChange();
+    }
 
     window.onPageRefresh = async function () {
       if (globalState.adminToken) await loadReportData();

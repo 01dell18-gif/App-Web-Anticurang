@@ -226,11 +226,24 @@
           <button type="button" onclick="handleTopbarFullscreenClick()" title="Layar Penuh" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold border border-slate-700 inline-flex items-center gap-1 cursor-pointer">
             <i class="fa-solid fa-expand"></i> <span class="hidden sm:inline">Fullscreen</span>
           </button>
-          <button type="button" onclick="openFinishExamConfirm()" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-xs font-bold text-white cursor-pointer whitespace-nowrap">
+          <button type="button" id="runner-finish-btn" onclick="openFinishExamConfirm()" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-xs font-bold text-white cursor-pointer whitespace-nowrap transition-all">
             Selesai Ujian
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- Banner Peringatan Waktu Habis -->
+    <div id="runner-timeup-banner" class="hidden bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold flex items-center justify-between gap-2 sm:gap-3 shadow-md z-20 shrink-0 border-b border-red-500">
+      <div class="flex items-center gap-2 min-w-0">
+        <i class="fa-solid fa-triangle-exclamation text-amber-300 text-base animate-bounce shrink-0"></i>
+        <span class="truncate sm:whitespace-normal font-semibold">
+          <span class="uppercase tracking-wide text-amber-200">Waktu Ujian Habis!</span> Segera gulir ke bagian paling bawah Google Form dan klik tombol <b>Kirim / Submit</b> sekarang!
+        </span>
+      </div>
+      <button type="button" onclick="openFinishExamConfirm(true)" class="px-3 py-1 bg-white hover:bg-amber-50 text-red-700 rounded-lg text-xs font-black shrink-0 shadow-xs cursor-pointer">
+        Saya Sudah Kirim & Selesai
+      </button>
     </div>
 
     <div class="relative flex-1 bg-slate-50 overflow-hidden exam-stage-touch">
@@ -300,6 +313,7 @@
       fullscreenOperational: false,
       isViolationOverlayOpen: false,
       isFinishModalOpen: false,
+      isTimeUpHandled: false,
       ignoreBlurUntil: 0,
       logs: [],
       heartbeatTimer: null,
@@ -807,8 +821,17 @@
       examState.requireFullscreen = res.security ? Boolean(res.security.requireFullscreen) : true;
       examState.isViolationOverlayOpen = false;
       examState.isFinishModalOpen = false;
+      examState.isTimeUpHandled = false;
       examState.ignoreBlurUntil = Date.now() + 2000;
       examState.logs = [];
+
+      const timeupBanner = document.getElementById('runner-timeup-banner');
+      if (timeupBanner) timeupBanner.classList.add('hidden');
+      const runnerFinishBtn = document.getElementById('runner-finish-btn');
+      if (runnerFinishBtn) {
+        runnerFinishBtn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-xs font-bold text-white cursor-pointer whitespace-nowrap transition-all';
+        runnerFinishBtn.innerHTML = 'Selesai Ujian';
+      }
 
       document.body.classList.add('exam-locked-mode');
       document.getElementById('runner-mapel').textContent = res.exam.mapel;
@@ -879,13 +902,55 @@
       const rem = endMs - (Date.now() + globalState.serverOffsetMs);
       if (rem <= 0) {
         clearInterval(examState.countdownTimer);
-        finishAndExitExam('Selesai (Waktu Habis)');
+        handleExamTimeUp();
         return;
       }
       pill.textContent = 'Sisa: ' + formatDurationMs(rem);
       if (rem <= 5 * 60 * 1000) pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-bold bg-red-950 border border-red-500 text-red-200';
       else if (rem <= 15 * 60 * 1000) pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-bold bg-amber-950 border border-amber-500 text-amber-200';
       else pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-bold bg-slate-800 border border-slate-700 text-slate-200';
+    }
+
+    async function handleExamTimeUp() {
+      if (examState.isTimeUpHandled) return;
+      examState.isTimeUpHandled = true;
+      playAlertBeep();
+
+      const pill = document.getElementById('runner-timer-pill');
+      if (pill) {
+        pill.textContent = 'WAKTU HABIS!';
+        pill.className = 'px-2 sm:px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs font-black bg-red-600 text-white animate-pulse shadow-sm';
+      }
+
+      const banner = document.getElementById('runner-timeup-banner');
+      if (banner) banner.classList.remove('hidden');
+
+      const finishBtn = document.getElementById('runner-finish-btn');
+      if (finishBtn) {
+        finishBtn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-xs font-black text-white cursor-pointer whitespace-nowrap ring-2 ring-amber-300 animate-pulse';
+        finishBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1"></i> Saya Sudah Kirim';
+      }
+
+      examState.ignoreBlurUntil = Date.now() + 1500;
+      await Swal.fire({
+        title: '⏰ WAKTU UJIAN TELAH HABIS!',
+        html: '<div class="text-left text-xs sm:text-sm space-y-2.5 text-slate-700 leading-relaxed">' +
+                '<p class="font-bold text-red-600">Perhatian: Durasi pengerjaan Anda telah selesai.</p>' +
+                '<div class="bg-amber-50 border border-amber-300 rounded-xl p-3 text-amber-900">' +
+                  '<p class="font-bold mb-1"><i class="fa-solid fa-circle-exclamation mr-1 text-amber-600"></i>Langkah Penting:</p>' +
+                  '<ol class="list-decimal list-inside space-y-1 text-xs">' +
+                    '<li>Gulir ke bagian paling bawah lembar Google Form.</li>' +
+                    '<li>Klik tombol ungu <b>"Kirim"</b> / <b>"Submit"</b> sekarang juga agar jawaban tersimpan ke sistem guru.</li>' +
+                    '<li>Setelah Google Form terkirim, klik tombol <b>"Saya Sudah Kirim & Selesai"</b> di bagian atas.</li>' +
+                  '</ol>' +
+                '</div>' +
+              '</div>',
+        icon: 'warning',
+        confirmButtonColor: '#16a34a',
+        confirmButtonText: '<i class="fa-solid fa-arrow-down mr-1"></i> Mengerti, Saya Akan Klik Kirim di Form',
+        allowOutsideClick: false
+      });
+      examState.ignoreBlurUntil = Date.now() + 1000;
     }
 
     function bindAntiCheatListeners() {
@@ -1007,22 +1072,38 @@
       }
     }
 
-    async function openFinishExamConfirm() {
+    async function openFinishExamConfirm(isTimeUpConfirm) {
       examState.isFinishModalOpen = true;
       const isLocked = examState.maxViolations > 0 && examState.violations >= examState.maxViolations;
+      let title = 'Akhiri Sesi Ujian?';
+      let text = 'Pastikan Anda sudah menekan Kirim / Submit di dalam Google Form sebelum menutup halaman soal.';
+      let btnText = 'Ya, Selesai & Tutup';
+      let btnColor = '#1d4ed8';
+
+      if (isLocked) {
+        title = 'Keluar dari Sesi Terkunci?';
+        text = 'Sesi ujian Anda sedang terkunci karena batas pelanggaran. Yakin keluar dari halaman soal?';
+        btnText = 'Ya, Keluar';
+        btnColor = '#dc2626';
+      } else if (isTimeUpConfirm || examState.isTimeUpHandled) {
+        title = 'Konfirmasi Selesai Ujian';
+        text = 'Apakah Anda SUDAH menekan tombol "Kirim" / "Submit" pada formulir Google Form di bawah? Pastikan formulir sudah terkirim sebelum keluar.';
+        btnText = 'Sudah Kirim & Selesai';
+        btnColor = '#16a34a';
+      }
+
       const res = await Swal.fire({
-        title: isLocked ? 'Keluar dari Sesi Terkunci?' : 'Akhiri Sesi Ujian?',
-        text: isLocked
-          ? 'Sesi ujian Anda sedang terkunci karena batas pelanggaran. Yakin keluar dari halaman soal?'
-          : 'Pastikan Anda sudah menekan Kirim / Submit di dalam Google Form sebelum menutup halaman soal.',
-        icon: 'question',
+        title: title,
+        text: text,
+        icon: isLocked ? 'warning' : 'question',
         showCancelButton: true,
-        confirmButtonColor: isLocked ? '#dc2626' : '#1d4ed8',
-        confirmButtonText: isLocked ? 'Ya, Keluar' : 'Ya, Selesai & Tutup',
-        cancelButtonText: 'Kembali'
+        confirmButtonColor: btnColor,
+        confirmButtonText: btnText,
+        cancelButtonText: 'Kembali Periksa Form'
       });
       if (res.isConfirmed) {
-        finishAndExitExam(isLocked ? 'Terkunci (Keluar)' : 'Selesai');
+        const finalStatus = isLocked ? 'Terkunci (Keluar)' : (examState.isTimeUpHandled ? 'Selesai (Waktu Habis)' : 'Selesai');
+        finishAndExitExam(finalStatus);
       } else {
         examState.ignoreBlurUntil = Date.now() + 800;
         examState.isFinishModalOpen = false;
@@ -1043,8 +1124,17 @@
       examState.sessionId = '';
       examState.isViolationOverlayOpen = false;
       examState.isFinishModalOpen = false;
+      examState.isTimeUpHandled = false;
       clearInterval(examState.countdownTimer);
       clearInterval(examState.heartbeatTimer);
+
+      const timeupBanner = document.getElementById('runner-timeup-banner');
+      if (timeupBanner) timeupBanner.classList.add('hidden');
+      const runnerFinishBtn = document.getElementById('runner-finish-btn');
+      if (runnerFinishBtn) {
+        runnerFinishBtn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-xs font-bold text-white cursor-pointer whitespace-nowrap transition-all';
+        runnerFinishBtn.innerHTML = 'Selesai Ujian';
+      }
 
       document.body.classList.remove('exam-locked-mode');
       document.getElementById('exam-runner').classList.add('hidden');
