@@ -103,12 +103,14 @@ Komponen bersama (*shared components*) tidak diduplikasi, melainkan diinjeksi ol
 </html>
 ```
 
-### Jenis Scriptlet Google Apps Script yang Digunakan:
+### Jenis Scriptlet Google Apps Script yang Digunakan
+
 - `<?!= ... ?>` (**Force-Printing Scriptlet / Unescaped**): Mencetak blok kode HTML/CSS/JS dari file partial tanpa sanitasi encoding, sehingga browser merender komponen secara utuh.
 - `<?= ... ?>` (**Printing Scriptlet / Escaped**): Mencetak data dengan sanitasi HTML (mencegah XSS).
 - `<? ... ?>` (**Code Scriptlet**): Menjalankan logika kontrol server (`if/else`, perulangan) sebelum dokumen dikirim ke klien.
 
-### Mesin Kompilator di Code.gs:
+### Mesin Kompilator di Code.gs
+
 ```javascript
 function include(filename, data) {
   try {
@@ -134,7 +136,8 @@ function include(filename, data) {
 
 Google Apps Script hanya memiliki **satu URL eksekusi induk** (`/exec`). Untuk menyajikan banyak halaman, digunakan teknik **Query Parameter Routing** (`?page=...`):
 
-### Peta Rute di Code.gs:
+### Peta Rute di Code.gs
+
 ```javascript
 const ROUTE_MAP = {
   'portal': 'Portal',
@@ -153,9 +156,11 @@ const ROUTE_MAP = {
 ```
 
 ### Solusi Blank Putih & Navigasi Induk (`window.top.location.href`)
+
 Aplikasi Web Apps Script berjalan di dalam **iframe sandbox** (`script.googleusercontent.com`). Jika berpindah halaman hanya menggunakan `window.location.href`, browser akan mengarahkan iframe ke URL domain terisolasi yang menyebabkan **blank putih** dan memutus tautan induk.
 
 Solusi yang diterapkan pada `AppJS.html`:
+
 ```javascript
 function navigateTo(page, params) {
   sessionStorage.setItem('anticurang_active_page', page);
@@ -183,6 +188,7 @@ function navigateTo(page, params) {
 ```
 
 **Manfaat Utama**:
+
 1. Menghindari blank putih akibat pembatasan sandbox iframe Google.
 2. Memperbarui query parameter di address bar browser secara nyata.
 3. Saat pengguna me-refresh browser (F5), aplikasi **tetap berada di halaman yang sedang aktif** dan tidak terlempar kembali ke portal utama.
@@ -194,17 +200,22 @@ function navigateTo(page, params) {
 Fitur anticurang beroperasi secara berlapis pada sisi klien (*frontend client-side enforcement*) dan dicatat secara realtime ke server:
 
 ### A. Kunci Layar Penuh (*Fullscreen Lock*)
+
 Memanfaatkan W3C Fullscreen API (`requestFullscreen` & `webkitRequestFullscreen`):
+
 - Begitu siswa menekan tombol *"Buka Soal Anticurang"*, antarmuka ujian memasuki layar penuh.
 - Jika siswa menekan tombol Escape atau berusaha keluar dari layar penuh, event listener mendeteksi keluarnya mode fullscreen dan segera memunculkan overlay peringatan.
 
 ### B. Deteksi Pindah Tab & Pengaburan Layar (*Visibility & Blur Events*)
+
 - `document.addEventListener('visibilitychange')`: Mendeteksi saat tab ujian disembunyikan atau siswa membuka tab baru.
 - `window.addEventListener('blur')`: Mendeteksi saat jendela ujian kehilangan fokus (misal siswa membuka aplikasi WhatsApp, browser lain, kalkulator, atau split-screen).
 - Terdapat toleransi cerdas (`ignoreBlurUntil`) untuk mencegah *false alarm* saat siswa berinteraksi dengan dialog sistem seperti pengunggah berkas di dalam Google Form.
 
 ### C. Pemblokiran Pintasan Keyboard & DevTools
+
 Event listener menangkap dan membatalkan pintasan berbahaya pada fase tangkap (`useCapture: true`):
+
 - **F12**, **Ctrl+Shift+I**, **Ctrl+Shift+J**, **Ctrl+Shift+C**: Pemblokiran akses Developer Tools inspect element.
 - **Ctrl+C**, **Ctrl+V**, **Ctrl+X**: Pemblokiran salin-tempel jawaban.
 - **Ctrl+U**: Pemblokiran lihat sumber kode halaman.
@@ -212,7 +223,9 @@ Event listener menangkap dan membatalkan pintasan berbahaya pada fase tangkap (`
 - **Klik Kanan (`contextmenu`)**: Dinonaktifkan dengan notifikasi toast peringatan.
 
 ### D. Audio Alarm (*Web Audio API*)
+
 Menggunakan sintesis frekuensi bawaan peramban tanpa membutuhkan berkas audio eksternal (`.mp3`/`.wav`):
+
 ```javascript
 function playAlertBeep() {
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -231,11 +244,13 @@ function playAlertBeep() {
 ```
 
 ### E. Batas Maksimal Pelanggaran & Kunci PIN Pengawas
+
 - Pelanggaran dihitung secara bertahap (1x, 2x, 3x).
 - Jika jumlah pelanggaran mencapai batas `Batas Pelanggaran` (tersimpan di sel `H2` Sheet Pengaturan), lembar soal Google Form **terkunci total** di balik overlay gelap.
 - Layar hanya dapat dibuka kembali jika Pengawas Ruang memasukkan **PIN Pengawas** (`654321`) yang diverifikasi langsung ke server.
 
 ### F. Dinamik Watermark Anti-Foto
+
 Di atas lembar soal Google Form diinjeksi lapisan watermark transparan semi-terlihat yang memuat teks:
 `NAMA LENGKAP SISWA • NAMA MATA PELAJARAN • ANTICURANG`
 Hal ini mencegah kecurangan di mana siswa memotret layar ponsel dan membagikannya ke luar.
@@ -245,10 +260,13 @@ Hal ini mencegah kecurangan di mana siswa memotret layar ponsel dan membagikanny
 ## ⏰ 6. Graceful Time-Up Protection (Penanganan Waktu Habis Google Form)
 
 ### Batasan Keamanan Browser (Same-Origin Policy)
+
 Google Form berada di dalam `<iframe>` bersumber dari `docs.google.com`, sedangkan web aplikasi berada di `script.google.com`. Browser dunia menerapkan aturan isolasi lintas domain (**Same-Origin Policy**) yang melarang dokumen induk mengeklik elemen di dalam iframe Google Form secara otomatis.
 
 ### Solusi Perlindungan Jawaban Murid
+
 Alih-alih langsung menutup paksa halaman dan menghapus iframe saat waktu habis (`00:00:00`), sistem menerapkan alur penyelamatan jawaban:
+
 1. Formulir Google Form **tetap dibiarkan aktif di layar**.
 2. Alarm peringatan berbunyi dan muncul modal dialog mencolok:
    > *"⏰ **WAKTU UJIAN TELAH HABIS!** Segera gulir ke bagian paling bawah Google Form dan klik tombol **Kirim / Submit** sekarang juga agar jawaban tersimpan ke sistem guru."*
@@ -358,6 +376,7 @@ flowchart TD
 ## 🔍 10. Searchable Combobox & Autocomplete Cerdas
 
 Untuk mempermudah input di layar ponsel maupun desktop:
+
 1. **Filter Kelas Portal Publik**:
    - Menggunakan komponen **Custom Searchable Combobox**. Pengguna dapat mengetik kelas (misal: `"DKV"`) untuk menyaring soal secara langsung, atau mengeklik ikon panah untuk memilih dari daftar dropdown.
 2. **Modal Masuk Ujian Siswa**:
@@ -372,6 +391,7 @@ Untuk mempermudah input di layar ponsel maupun desktop:
 ## 🖨️ 11. Dynamic Adaptive Print & PDF Engine (`Laporan.html`)
 
 Fitur cetak berita acara dan laporan monitoring dinas dilengkapi:
+
 1. **Smart Kop Divider**: Otomatis mendeteksi apakah kop berupa gambar Google Drive (LH3 Thumbnail Engine) atau teks instansi dengan garis ganda dinas.
 2. **TTD Pengawas & NIP Dinamis Tanpa Garis Potong**:
    - Pengawas dapat mengetik Nama Pengawas dan NIP pada bilah toolbar atas.

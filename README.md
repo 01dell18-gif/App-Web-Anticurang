@@ -69,7 +69,9 @@ Aplikasi ujian daring (*online assessment*) serverless berbasis **Google Apps Sc
 Aplikasi dirancang agar pengguna non-koding dapat mengganti database Spreadsheet atau menyalin proyek tanpa perlu mengubah kode di `Code.gs`:
 
 ### Cara 1 — Ganti Spreadsheet Langsung dari Menu Pengaturan Sistem
+
 Gunakan cara ini bila Anda sudah memiliki Web App terdeploy dan ingin memindahkan datanya ke file Google Spreadsheet baru:
+
 1. Buat file Google Spreadsheet baru di Google Drive (pastikan akun pemilik Web App memiliki akses **Editor** ke Spreadsheet tersebut).
 2. Salin **URL lengkap Spreadsheet** (misal `https://docs.google.com/spreadsheets/d/1abc.../edit`) atau **ID Spreadsheet**-nya saja.
 3. Buka Dashboard Admin (`?page=pengaturan`), masuk dengan **PIN Admin**.
@@ -77,7 +79,9 @@ Gunakan cara ini bila Anda sudah memiliki Web App terdeploy dan ingin memindahka
 5. Klik **Simpan Pengaturan** (sistem akan memvalidasi akses lalu otomatis membuat tabel database yang belum ada di Spreadsheet baru). Anda juga dapat menekan tombol **Siapkan Struktur Database** kapan saja untuk memastikan ke-5 tab sheet tersedia lengkap.
 
 ### Cara 2 — Duplikasi Spreadsheet (*Make a Copy* / Container-Bound)
+
 Gunakan cara ini bila proyek Apps Script menempel di file Google Spreadsheet utama dan Anda ingin menggandakannya untuk sekolah/ruang lain:
+
 1. Di Google Spreadsheet, pilih **File $\rightarrow$ Buat salinan (Make a copy)**.
 2. Di Spreadsheet hasil salinan, buka **Ekstensi $\rightarrow$ Apps Script**.
 3. Klik **Terapkan (Deploy) $\rightarrow$ Deployment baru**:
@@ -92,6 +96,7 @@ Gunakan cara ini bila proyek Apps Script menempel di file Google Spreadsheet uta
 ## Lokasi Penyimpanan Konfigurasi Koneksi (`Script Properties`) & Cara Reset
 
 Beberapa konfigurasi tingkat sistem **tidak disimpan di dalam Google Sheet**, melainkan di memori internal Google Apps Script (**`PropertiesService.getScriptProperties()`**), antara lain:
+
 - `CUSTOM_SPREADSHEET_ID`: Link/ID Spreadsheet pengganti jika diatur dari menu Pengaturan.
 - `CUSTOM_DEPLOY_URL`: Link deploy cadangan (opsional).
 - `ADMIN_PIN`, `MAX_VIOLATIONS`, `REQUIRE_FULLSCREEN`: Cache konfigurasi keamanan & PIN Admin.
@@ -100,6 +105,7 @@ Beberapa konfigurasi tingkat sistem **tidak disimpan di dalam Google Sheet**, me
 Karena aplikasi harus mengetahui ID Spreadsheet tujuan terlebih dahulu sebelum bisa membuka file Spreadsheet mana pun (`getSpreadsheet_()`).
 
 **Urutan Prioritas Koneksi (`Code.gs`)**:
+
 - **Database (`getSpreadsheet_()`)**:
   1. `CUSTOM_SPREADSHEET_ID` di *Script Properties* (jika diisi lewat menu Pengaturan).
   2. `SpreadsheetApp.getActiveSpreadsheet()` (otomatis aktif saat file Spreadsheet diduplikasi).
@@ -111,6 +117,7 @@ Karena aplikasi harus mengetahui ID Spreadsheet tujuan terlebih dahulu sebelum b
 
 **Cara Reset Jika Salah Memasukkan ID Spreadsheet**:
 Jika Anda salah menempel ID Spreadsheet baru (atau salah memasukkan ID yang tidak bisa diakses) hingga dashboard gagal memuat:
+
 1. Buka Editor Google Apps Script $\rightarrow$ klik ikon gerigi **Setelan Proyek (Project Settings)** di sidebar kiri.
 2. Gulir ke bagian **Properti Skrip (Script Properties)** $\rightarrow$ klik **Edit properti skrip**.
 3. Hapus atau kosongkan nilai **`CUSTOM_SPREADSHEET_ID`** (dan **`CUSTOM_DEPLOY_URL`** bila perlu), lalu simpan.
@@ -171,6 +178,7 @@ Seluruh HTML antarmuka pengguna sengaja **tidak menampilkan** nama sheet dan pos
 Secara arsitektur sistem, aplikasi ujian anticurang ini dirancang untuk menangani **100 hingga 500+ siswa sekaligus (serentak)** dengan sangat lancar.
 
 ### 1. Faktor Arsitektur Pendukung
+
 - **Pengerjaan Soal Ditangani Langsung oleh Google Form**: Lembar soal dan proses pengiriman jawaban (*submit*) diproses langsung oleh infrastruktur **Google Cloud / Google Form**. Google Form sendiri sanggup menerima ribuan jawaban secara bersamaan tanpa membebani kuota eksekusi Google Apps Script.
 - **Optimasi Cache Berkecepatan Tinggi (*CacheService*)**: Jadwal ujian dan data murid telah di-cache di memori server selama 60 detik. Ketika ratusan siswa membuka halaman portal bersamaan, data disajikan dalam **< 30 milidetik** tanpa membebani kuota baca Google Spreadsheet.
 - **Beban Aplikasi Web Sangat Ringan**: Aplikasi web hanya memproses pencatatan saat siswa pertama kali menekan tombol *Buka Soal*, mendeteksi pelanggaran (jika berpindah tab), dan mencatat waktu selesai ujian.
@@ -188,6 +196,7 @@ Secara arsitektur sistem, aplikasi ujian anticurang ini dirancang untuk menangan
 > Batas **30 proses simultan** Google Apps Script mengukur aksi yang terjadi **pada milidetik yang sama persis**. Selama siswa mengklik tombol masuk ujian secara wajar (tersebar dalam rentang 1–5 menit), ratusan siswa tidak akan mengalami kendala antrean (*queue*).
 
 ### 3. Tips & Rekomendasi Pelaksanaan Ujian Massal
+
 1. **Beri Jeda Waktu Buka Jadwal**: Atur jam buka portal 5–10 menit sebelum ujian dimulai agar siswa masuk secara bertahap dan tidak menekan tombol *Buka Soal* serempak di detik yang sama.
 2. **Pengaturan Google Form**: Di Google Form, aktifkan **"Batasi ke 1 tanggapan"** jika ingin memastikan setiap siswa hanya bisa mengirim jawaban satu kali.
 3. **Pemeliharaan Data Berkala**: Setelah selesai satu periode ujian (misal setelah selesai PTS/PAS), Anda dapat mengosongkan riwayat di menu *Dashboard Monitoring* (atau ekspor ke Excel terlebih dahulu) agar Google Spreadsheet tetap ringan dan responsif.
@@ -197,9 +206,9 @@ Secara arsitektur sistem, aplikasi ujian anticurang ini dirancang untuk menangan
 ## Alur Penggunaan Singkat
 
 - **Siswa**: Buka link utama (`/exec`) $\rightarrow$ pilih jadwal berstatus *Sedang Berlangsung* $\rightarrow$ pada jendela konfirmasi:
-  * **Kelas** terisi otomatis & terkunci sesuai kelas jadwal ujian.
-  * **Nama Siswa** dipilih melalui dropdown yang otomatis memfilter siswa khusus pada kelas tersebut.
-  * **NIS / No. Peserta** otomatis terisi (`readOnly`) mengikuti murid yang dipilih.
-  * Centang persetujuan $\rightarrow$ klik **Buka Soal Anticurang** dan kerjakan pada mode Layar Penuh hingga menekan **Kirim / Submit** pada Google Form lalu klik **Selesai Ujian**.
+  - **Kelas** terisi otomatis & terkunci sesuai kelas jadwal ujian.
+  - **Nama Siswa** dipilih melalui dropdown yang otomatis memfilter siswa khusus pada kelas tersebut.
+  - **NIS / No. Peserta** otomatis terisi (`readOnly`) mengikuti murid yang dipilih.
+  - Centang persetujuan $\rightarrow$ klik **Buka Soal Anticurang** dan kerjakan pada mode Layar Penuh hingga menekan **Kirim / Submit** pada Google Form lalu klik **Selesai Ujian**.
 - **Pengawas Ruang**: Buka link `?page=pengawas` (atau `?page=admin`) $\rightarrow$ login memakai **PIN Pengawas** $\rightarrow$ pantau status pengerjaan & pelanggaran secara berkala, cetak/ekspor rekap, atau masukkan **PIN Pengawas** pada layar siswa jika peserta terkunci.
 - **Administrator**: Login memakai **PIN Admin** $\rightarrow$ kelola **Data Mapel** dan **Data Murid** (tambah/edit/hapus atau impor Excel siswa per kelas), tambah/impor link soal pada **Kelola Link Soal**, pantau **Dashboard Monitoring**, cetak **Laporan PDF**, dan atur identitas/PIN/koneksi database di **Pengaturan Sistem**.
