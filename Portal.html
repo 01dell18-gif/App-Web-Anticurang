@@ -1564,78 +1564,82 @@
     function showAppVersionModal() {
       if (typeof Swal === 'undefined') return;
       Swal.fire({
-        title: 'Informasi Versi & Pembaruan',
-        html: 
-          '<div class="text-left text-xs sm:text-sm text-slate-700 space-y-3.5 max-h-[60vh] overflow-y-auto pr-1">' +
-            '<div class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-brand-50 to-indigo-50 border border-brand-200">' +
-              '<div>' +
-                '<div class="text-[11px] font-bold text-brand-700 uppercase tracking-wide">Versi Sistem Web</div>' +
-                '<div class="text-lg font-black text-slate-900 flex items-center gap-1.5">' +
-                  '<span>Versi 3.4</span>' +
-                  '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">Terbaru</span>' +
+        width: '420px',
+        padding: '1.25rem',
+        showCloseButton: true,
+        confirmButtonText: 'Tutup',
+        confirmButtonColor: '#2563eb',
+        buttonsStyling: true,
+        customClass: {
+          popup: 'rounded-2xl shadow-2xl border border-slate-200 text-left',
+          confirmButton: 'text-xs font-bold px-4 py-1.5 rounded-xl shadow-xs'
+        },
+        html:
+          '<div class="text-left">' +
+            '<div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100">' +
+              '<div class="flex items-center gap-2">' +
+                '<span class="w-7 h-7 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center text-xs shrink-0">' +
+                  '<i class="fa-solid fa-code-branch"></i>' +
+                '</span>' +
+                '<div>' +
+                  '<div class="font-extrabold text-slate-900 text-sm leading-tight">Informasi Versi</div>' +
+                  '<div class="text-[10px] text-slate-400">Pembaruan & Catatan Rilis</div>' +
                 '</div>' +
               '</div>' +
-              '<div class="text-right text-[11px] text-slate-500 font-semibold">' +
-                '<div>Rilis: 28 Nov 2026</div>' +
-                '<div>Arsitektur: Terpisah</div>' +
-              '</div>' +
-            '</div>' +
-
-            '<div>' +
-              '<div class="text-xs font-black text-slate-800 mb-2 flex items-center gap-1.5">' +
-                '<i class="fa-solid fa-clock-rotate-left text-brand-600"></i>' +
-                '<span>Catatan Pembaruan (Changelog)</span>' +
-              '</div>' +
-              '<div class="space-y-2.5 text-xs">' +
-                '<div class="p-3 rounded-xl bg-slate-50 border border-slate-200">' +
-                  '<div class="flex items-center justify-between mb-1">' +
-                    '<b class="text-brand-700 font-extrabold text-[13px]">Versi 3.4 (Terbaru)</b>' +
-                    '<span class="text-[10px] text-slate-400">28 Nov 2026</span>' +
-                  '</div>' +
-                  '<ul class="list-disc list-inside space-y-1 text-slate-600 leading-relaxed">' +
-                    '<li><b>Proteksi 1x Ujian:</b> Siswa yang sudah mengerjakan soal mapel pada hari tersebut otomatis disaring dari pilihan nama modal ujian, serta divalidasi ganda di server backend.</li>' +
-                    '<li><b>Live Auto-Refresh 15 Detik:</b> Halaman Dashboard Monitoring otomatis aktif menyegarkan data log setiap 15 detik secara default.</li>' +
-                    '<li><b>Badge Versi Interaktif:</b> Penambahan informasi versi sistem pada bilah navigasi beserta popup riwayat pembaruan.</li>' +
-                  '</ul>' +
-                '</div>' +
-
-                '<div class="p-3 rounded-xl bg-slate-50 border border-slate-200">' +
-                  '<div class="flex items-center justify-between mb-1">' +
-                    '<b class="text-slate-800 font-bold">Versi 3.3</b>' +
-                    '<span class="text-[10px] text-slate-400">28 Nov 2026</span>' +
-                  '</div>' +
-                  '<ul class="list-disc list-inside space-y-1 text-slate-600 leading-relaxed">' +
-                    '<li><b>Toleransi Waktu Pengiriman 1 Menit:</b> Tambahan waktu 60 detik saat durasi habis untuk mengirim jawaban ke Google Form.</li>' +
-                    '<li><b>Auto-Close Otomatis:</b> Lembar soal otomatis tertutup seketika dan tercatat di monitoring jika waktu toleransi habis.</li>' +
-                  '</ul>' +
-                '</div>' +
-
-                '<div class="p-3 rounded-xl bg-slate-50 border border-slate-200">' +
-                  '<div class="flex items-center justify-between mb-1">' +
-                    '<b class="text-slate-800 font-bold">Versi 3.2</b>' +
-                    '<span class="text-[10px] text-slate-400">28 Nov 2026</span>' +
-                  '</div>' +
-                  '<ul class="list-disc list-inside space-y-1 text-slate-600 leading-relaxed">' +
-                    '<li><b>Pengingat Sisa Waktu 2 Menit & 1 Menit:</b> Notifikasi visual mencolok disertai suara chime yang 100% bebas dari hitungan pelanggaran.</li>' +
-                  '</ul>' +
-                '</div>' +
-
-                '<div class="p-3 rounded-xl bg-slate-50 border border-slate-200">' +
-                  '<div class="flex items-center justify-between mb-1">' +
-                    '<b class="text-slate-800 font-bold">Versi 3.1 & 3.0</b>' +
-                    '<span class="text-[10px] text-slate-400">27 Nov 2026</span>' +
-                  '</div>' +
-                  '<ul class="list-disc list-inside space-y-1 text-slate-600 leading-relaxed">' +
-                    '<li><b>Modernisasi UI:</b> Desain ikon aksi seragam, optimasi cache database, dan pemisahan arsitektur Web Publik Siswa & Admin.</li>' +
-                    '<li><b>Master Data:</b> Pengelolaan Data Mapel, Data Murid, dan Pengaturan Sistem independen.</li>' +
-                  '</ul>' +
-                '</div>' +
+              '<div class="flex items-center gap-1.5 shrink-0">' +
+                '<span class="px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 font-mono font-extrabold text-[11px] border border-brand-200">v3.4</span>' +
+                '<span class="px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px] border border-emerald-200">Terbaru</span>' +
               '</div>' +
             '</div>' +
-          '</div>',
-        icon: 'info',
-        confirmButtonColor: '#1d4ed8',
-        confirmButtonText: 'Tutup'
+
+            '<div class="space-y-2 text-left max-h-[50vh] overflow-y-auto pr-1">' +
+              '<div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">' +
+                '<div class="flex items-center justify-between mb-1">' +
+                  '<span class="font-bold text-xs text-brand-700 flex items-center gap-1">' +
+                    '<i class="fa-solid fa-sparkles text-[10px] text-amber-500"></i> Versi 3.4' +
+                  '</span>' +
+                  '<span class="text-[10px] font-mono text-slate-400">28 Nov 2026</span>' +
+                '</div>' +
+                '<ul class="text-[11px] text-slate-600 space-y-1 list-disc list-inside leading-relaxed">' +
+                  '<li><b>Proteksi 1x Ujian:</b> Siswa yang sudah mengerjakan tidak tampil lagi di pilihan modal.</li>' +
+                  '<li><b>Auto-Refresh 15 Detik:</b> Monitoring otomatis menyegarkan log setiap 15 detik.</li>' +
+                  '<li><b>Indikator Versi:</b> Badge versi interaktif dengan catatan rilis.</li>' +
+                '</ul>' +
+              '</div>' +
+
+              '<div class="p-2.5 rounded-xl bg-white border border-slate-100">' +
+                '<div class="flex items-center justify-between mb-1">' +
+                  '<span class="font-bold text-xs text-slate-800">Versi 3.3</span>' +
+                  '<span class="text-[10px] font-mono text-slate-400">28 Nov 2026</span>' +
+                '</div>' +
+                '<ul class="text-[11px] text-slate-500 space-y-0.5 list-disc list-inside leading-relaxed">' +
+                  '<li><b>Toleransi Waktu 1 Menit:</b> Tambahan 60 detik saat waktu habis untuk klik Kirim di form.</li>' +
+                  '<li><b>Auto-Close:</b> Soal otomatis tertutup saat waktu toleransi berakhir.</li>' +
+                '</ul>' +
+              '</div>' +
+
+              '<div class="p-2.5 rounded-xl bg-white border border-slate-100">' +
+                '<div class="flex items-center justify-between mb-1">' +
+                  '<span class="font-bold text-xs text-slate-800">Versi 3.2</span>' +
+                  '<span class="text-[10px] font-mono text-slate-400">28 Nov 2026</span>' +
+                '</div>' +
+                '<ul class="text-[11px] text-slate-500 space-y-0.5 list-disc list-inside leading-relaxed">' +
+                  '<li><b>Pengingat Sisa Waktu:</b> Peringatan sisa 2 menit & 1 menit (bebas pelanggaran).</li>' +
+                '</ul>' +
+              '</div>' +
+
+              '<div class="p-2.5 rounded-xl bg-white border border-slate-100">' +
+                '<div class="flex items-center justify-between mb-1">' +
+                  '<span class="font-bold text-xs text-slate-800">Versi 3.1 & 3.0</span>' +
+                  '<span class="text-[10px] font-mono text-slate-400">27 Nov 2026</span>' +
+                '</div>' +
+                '<ul class="text-[11px] text-slate-500 space-y-0.5 list-disc list-inside leading-relaxed">' +
+                  '<li><b>Modernisasi UI & Sistem:</b> Pemisahan link portal publik & dashboard admin.</li>' +
+                  '<li><b>Master Data:</b> Kelola Data Mapel, Data Murid & Pengaturan mandiri.</li>' +
+                '</ul>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
       });
     }
   </script>
