@@ -322,6 +322,7 @@
     const portalState = {
       exams: [],
       students: [],
+      takenSessions: [],
       activeClassStudents: [],
       statusFilter: (APP_PARAMS && APP_PARAMS.filter) ? APP_PARAMS.filter : 'active',
       pendingRowIndex: null
@@ -394,6 +395,7 @@
         globalState.security = res.security || globalState.security;
         portalState.exams = res.exams || [];
         portalState.students = res.students || [];
+        portalState.takenSessions = res.takenSessions || [];
 
         applyGlobalBranding(res.settings);
         setImgWithFallback('public-nav-logo', res.settings.logoUrl, res.settings.logoFallbackUrl);
@@ -769,7 +771,26 @@
       const nisBadge = document.getElementById('student-nis-auto-badge');
 
       const matched = getClassMatchedStudents_(classQuery);
-      portalState.activeClassStudents = matched.list || [];
+
+      // Saring siswa yang SUDAH pernah mengerjakan mapel ini pada hari/tanggal ini
+      const pendingExam = portalState.exams.find(function (item) { return item.rowIndex === portalState.pendingRowIndex; });
+      const currentMapelLower = pendingExam ? String(pendingExam.mapel || '').trim().toLowerCase() : '';
+      const currentTanggal = pendingExam ? String(pendingExam.tanggal || '').trim() : '';
+      const takenList = portalState.takenSessions || [];
+
+      const eligibleStudents = (matched.list || []).filter(function (st) {
+        const stNameLower = String(st.nama || '').trim().toLowerCase();
+        const stNisClean = String(st.nis || '').trim();
+        const hasTaken = takenList.some(function (t) {
+          const isDateMatch = t.tanggal === currentTanggal;
+          const isMapelMatch = t.mapel === currentMapelLower;
+          const isStudentMatch = (t.nama === stNameLower) || (stNisClean && stNisClean !== '-' && t.nis && t.nis === stNisClean);
+          return isDateMatch && isMapelMatch && isStudentMatch;
+        });
+        return !hasTaken;
+      });
+
+      portalState.activeClassStudents = eligibleStudents;
 
       if (waitForClassPick && !classQuery) {
         if (nameDatalist) nameDatalist.innerHTML = '';
@@ -785,9 +806,28 @@
         return;
       }
 
+      // Jika seluruh siswa di kelas ini sudah mengerjakan mapel tersebut
+      if (matched.list && matched.list.length > 0 && eligibleStudents.length === 0) {
+        if (nameDatalist) nameDatalist.innerHTML = '';
+        if (nameSelect) nameSelect.innerHTML = '<option value="">-- Semua Siswa Sudah Mengerjakan --</option>';
+        nameInput.value = '';
+        nameInput.placeholder = 'Seluruh siswa kelas ini telah menyelesaikan ujian ini.';
+        nameInput.readOnly = true;
+        nameBadge.classList.remove('hidden');
+        nameBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300';
+        nameBadge.textContent = 'Semua Siswa Sudah Selesai';
+        nisInput.value = '';
+        nisInput.readOnly = true;
+        nisInput.placeholder = '-';
+        nisBadge.classList.add('hidden');
+        return;
+      }
+
       nameInput.readOnly = false;
       if (portalState.activeClassStudents.length > 0) {
         nameBadge.classList.remove('hidden');
+        nameBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700';
+        nameBadge.textContent = 'Belum ujian: ' + portalState.activeClassStudents.length + ' siswa';
         nameInput.placeholder = 'Ketik atau pilih nama siswa (' + portalState.activeClassStudents.length + ' siswa)...';
 
         if (nameDatalist) {

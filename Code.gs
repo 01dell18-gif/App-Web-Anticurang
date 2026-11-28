@@ -291,6 +291,16 @@ function getPublicPortalData(forceRefresh) {
     };
   });
 
+  const monitoringRows = readMonitoringRows_(ss || getSpreadsheet_());
+  const takenSessions = (monitoringRows || []).map(function (m) {
+    return {
+      nama: String(m.namaSiswa || '').trim().toLowerCase(),
+      nis: String(m.nis || '').trim(),
+      mapel: String(m.mapel || '').trim().toLowerCase(),
+      tanggal: String(m.tanggalUjian || '').trim()
+    };
+  });
+
   return {
     ok: true,
     serverNowMs: now.getTime(),
@@ -303,7 +313,8 @@ function getPublicPortalData(forceRefresh) {
       requireFullscreen: config.requireFullscreen
     },
     exams: exams,
-    students: students
+    students: students,
+    takenSessions: takenSessions
   };
 }
 
@@ -376,6 +387,33 @@ function startExamSession(payload) {
     ? matchedMurid.kelas
     : ((target.kelas && target.kelas !== '-') ? target.kelas : (studentClass || '-'));
 
+  const examDateStr = target.tanggal || Utilities.formatDate(now, tz, 'yyyy-MM-dd');
+  const examMapelLower = String(target.mapel || '').trim().toLowerCase();
+  const finalNameLower = String(finalName || '').trim().toLowerCase();
+  const finalNisClean = String(finalNis || '').trim();
+
+  // Proteksi pencegahan ujian ganda (> 1 kali) berdasarkan hari dan mapel
+  const monRows = readMonitoringRows_(ss);
+  const alreadyTaken = monRows.some(function (log) {
+    const logDate = String(log.tanggalUjian || '').trim();
+    const logMapel = String(log.mapel || '').trim().toLowerCase();
+    const logName = String(log.namaSiswa || '').trim().toLowerCase();
+    const logNis = String(log.nis || '').trim();
+
+    const isSameDate = logDate === examDateStr;
+    const isSameMapel = logMapel === examMapelLower;
+    const isSameStudent = (logName === finalNameLower) || (finalNisClean && finalNisClean !== '-' && logNis && logNis === finalNisClean);
+
+    return isSameDate && isSameMapel && isSameStudent;
+  });
+
+  if (alreadyTaken) {
+    return {
+      ok: false,
+      message: 'Siswa atas nama "' + finalName + '" sudah pernah mengerjakan soal ' + target.mapel + ' pada hari ini (' + formatTanggalIndonesia_(examDateStr) + '). Pengerjaan soal hanya diperbolehkan 1 kali.'
+    };
+  }
+
   const sessionId = Utilities.getUuid();
   const accessTimeStr = Utilities.formatDate(now, tz, 'yyyy-MM-dd HH:mm:ss');
 
@@ -405,6 +443,7 @@ function startExamSession(payload) {
     range.setValues([rowData]);
     monSheet.getRange(nextRow, cols['Jumlah Pelanggaran']).setNumberFormat('0').setValue(0);
     SpreadsheetApp.flush();
+    clearPortalCache_();
   } finally {
     lock.releaseLock();
   }
@@ -1167,10 +1206,12 @@ function clearMonitoringLogs(token, rowIndex) {
     if (rowIndex && Number(rowIndex) >= 2 && Number(rowIndex) <= lastRow) {
       monSheet.deleteRow(Number(rowIndex));
       SpreadsheetApp.flush();
+      clearPortalCache_();
       return { ok: true, message: '1 baris log monitoring berhasil dihapus.' };
     }
     monSheet.deleteRows(2, lastRow - 1);
     SpreadsheetApp.flush();
+    clearPortalCache_();
     return { ok: true, message: 'Seluruh log monitoring berhasil dibersihkan.' };
   } finally {
     lock.releaseLock();

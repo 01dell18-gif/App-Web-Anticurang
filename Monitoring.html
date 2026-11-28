@@ -102,7 +102,7 @@
 
           <div class="flex flex-wrap items-center gap-2">
             <label class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
-              <input id="mon-auto-refresh" type="checkbox" onchange="toggleMonitoringAutoRefresh()" class="rounded text-brand-600">
+              <input id="mon-auto-refresh" type="checkbox" checked onchange="toggleMonitoringAutoRefresh()" class="rounded text-brand-600">
               <span>Auto-Refresh 15d</span>
             </label>
             <button type="button" onclick="exportMonitoringExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
@@ -166,6 +166,7 @@
       document.getElementById('mon-auth-guard').classList.add('hidden');
       document.getElementById('mon-content').classList.remove('hidden');
       await loadMonitoringData();
+      toggleMonitoringAutoRefresh(true);
     };
 
     window.onPageRefresh = async function () {
@@ -308,11 +309,11 @@
       });
     }
 
-    function toggleMonitoringAutoRefresh() {
+    function toggleMonitoringAutoRefresh(silent) {
       clearInterval(monState.timer);
       if (document.getElementById('mon-auto-refresh').checked) {
         monState.timer = setInterval(loadMonitoringData, 15000);
-        showToast('Auto-refresh aktif setiap 15 detik.', 'info');
+        if (!silent) showToast('Auto-refresh aktif setiap 15 detik.', 'info');
       }
     }
 
