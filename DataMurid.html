@@ -20,7 +20,7 @@
         </div>
         <h3 class="text-lg font-extrabold text-slate-900">Akses Khusus Administrator</h3>
         <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk mengelola daftar murid, NIS/NISN, dan kelas peserta ujian.</p>
-        <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+        <button type="button" onclick="promptAdminLoginModal()" title="Masuk Sebagai Admin" aria-label="Masuk Sebagai Admin" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-xs transition-all flex items-center gap-2">
           <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
         </button>
       </section>
@@ -29,7 +29,7 @@
         <!-- Toolbar Atas -->
         <div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
           <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 w-full">
-            <input id="mrd-search" type="text" oninput="renderMuridTable()" placeholder="Cari Nama Murid / NIS / Kelas..."
+            <input id="mrd-search" type="text" oninput="renderMuridTable()" placeholder="Cari Nama Murid / NIS / Kelas..." title="Cari Nama Murid, NIS, atau Kelas" aria-label="Cari Nama Murid, NIS, atau Kelas"
               class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none w-full sm:w-auto sm:min-w-[220px]">
 
             <select id="mrd-kelas-filter" onchange="renderMuridTable()" aria-label="Filter Berdasarkan Kelas" title="Filter Berdasarkan Kelas"
@@ -42,16 +42,16 @@
 
           <div class="flex flex-wrap items-center gap-2">
             <input id="murid-excel-input" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleMuridExcelImport(event)" title="Unggah Berkas Excel Murid" aria-label="Unggah Berkas Excel Murid">
-            <button type="button" onclick="document.getElementById('murid-excel-input').click()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+            <button type="button" onclick="document.getElementById('murid-excel-input').click()" title="Impor Data Murid dari Berkas Excel" aria-label="Impor Data Murid dari Berkas Excel" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-file-import mr-1"></i> Impor Excel
             </button>
-            <button type="button" onclick="exportMuridExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+            <button type="button" onclick="exportMuridExcel()" title="Ekspor Data Murid ke Berkas Excel" aria-label="Ekspor Data Murid ke Berkas Excel" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
               <i class="fa-solid fa-file-excel mr-1"></i> Ekspor .xls
             </button>
-            <a id="mrd-sheet-link" href="#" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+            <a id="mrd-sheet-link" href="#" target="_blank" rel="noopener" title="Buka Spreadsheet di Tab Baru" aria-label="Buka Spreadsheet di Tab Baru" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-table mr-1"></i> Google Sheet
             </a>
-            <button type="button" onclick="navigateTo('kelola-soal')" class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+            <button type="button" onclick="navigateTo('kelola-soal')" title="Buka Halaman Kelola Soal" aria-label="Buka Halaman Kelola Soal" class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
               <i class="fa-solid fa-link mr-1"></i> Kelola Soal
             </button>
           </div>
@@ -67,25 +67,25 @@
           </div>
           <form onsubmit="submitAddMurid(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
             <div class="sm:col-span-2">
-              <input id="add-murid-no" type="text" placeholder="No (Otomatis)"
+              <input id="add-murid-no" type="text" placeholder="No (Otomatis)" title="Nomor Urut Murid" aria-label="Nomor Urut Murid"
                 class="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
             <div class="sm:col-span-4">
-              <input id="add-murid-nama" type="text" required placeholder="Nama Lengkap Murid *"
+              <input id="add-murid-nama" type="text" required placeholder="Nama Lengkap Murid *" title="Nama Lengkap Murid" aria-label="Nama Lengkap Murid"
                 class="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
             </div>
             <div class="sm:col-span-2">
-              <input id="add-murid-nis" type="text" placeholder="NIS / NISN"
+              <input id="add-murid-nis" type="text" placeholder="NIS / NISN" title="NIS atau NISN Murid" aria-label="NIS atau NISN Murid"
                 class="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
             </div>
             <div class="sm:col-span-2 datalist-input-wrapper">
-              <input id="add-murid-kelas" type="text" list="list-murid-kelas" autocomplete="off" required placeholder="Kelas * (misal: XI DKV)"
+              <input id="add-murid-kelas" type="text" list="list-murid-kelas" autocomplete="off" required placeholder="Kelas * (misal: XI DKV)" title="Kelas Murid" aria-label="Kelas Murid"
                 class="w-full text-xs sm:text-sm py-2 pl-3 pr-7 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
               <datalist id="list-murid-kelas"></datalist>
               <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400"><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
             </div>
             <div class="sm:col-span-2">
-              <button id="btn-add-murid" type="submit" class="w-full px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs">
+              <button id="btn-add-murid" type="submit" title="Tambah Data Murid Baru" aria-label="Tambah Data Murid Baru" class="w-full px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs">
                 <i class="fa-solid fa-plus mr-1"></i> Tambah Murid
               </button>
             </div>
@@ -128,29 +128,29 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">No</label>
-              <input id="edit-murid-no" type="text" placeholder="Nomor urut"
+              <input id="edit-murid-no" type="text" placeholder="Nomor urut" title="Nomor Urut Murid" aria-label="Nomor Urut Murid"
                 class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Kelas <span class="text-red-600">*</span></label>
-              <input id="edit-murid-kelas" type="text" required placeholder="Misal: XI DKV"
+              <input id="edit-murid-kelas" type="text" required placeholder="Misal: XI DKV" title="Kelas Murid" aria-label="Kelas Murid"
                 class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
             </div>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">Nama Murid <span class="text-red-600">*</span></label>
-            <input id="edit-murid-nama" type="text" required placeholder="Nama lengkap murid..."
+            <input id="edit-murid-nama" type="text" required placeholder="Nama lengkap murid..." title="Nama Lengkap Murid" aria-label="Nama Lengkap Murid"
               class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">NIS / NISN</label>
-            <input id="edit-murid-nis" type="text" placeholder="Nomor Induk Siswa / NISN"
+            <input id="edit-murid-nis" type="text" placeholder="Nomor Induk Siswa / NISN" title="NIS atau NISN Murid" aria-label="NIS atau NISN Murid"
               class="w-full text-sm font-mono px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
           </div>
         </div>
         <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-          <button type="button" onclick="closeEditMuridModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white">Batal</button>
-          <button id="btn-save-edit-murid" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan Perubahan</button>
+          <button type="button" onclick="closeEditMuridModal()" title="Batal Edit Data Murid" aria-label="Batal Edit Data Murid" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white">Batal</button>
+          <button id="btn-save-edit-murid" type="submit" title="Simpan Perubahan Data Murid" aria-label="Simpan Perubahan Data Murid" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan Perubahan</button>
         </div>
       </form>
     </div>

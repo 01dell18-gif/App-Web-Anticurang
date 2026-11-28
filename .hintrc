@@ -1,0 +1,7 @@
+{
+  "extends": ["development"],
+  "hints": {
+    "axe/color-contrast": "off",
+    "http-compression": "off"
+  }
+}

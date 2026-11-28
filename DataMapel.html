@@ -20,7 +20,7 @@
         </div>
         <h3 class="text-lg font-extrabold text-slate-900">Akses Khusus Administrator</h3>
         <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk menambah, mengubah, atau menghapus data Mata Pelajaran.</p>
-        <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+        <button type="button" onclick="promptAdminLoginModal()" title="Masuk Sebagai Admin" aria-label="Masuk Sebagai Admin" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
           <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
         </button>
       </section>
@@ -33,13 +33,13 @@
             <p class="text-xs text-slate-500 mt-0.5">Daftar mata pelajaran di sini otomatis mengisi dropdown pilihan pada menu Kelola Link Soal.</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <a id="dm-sheet-link" href="#" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+            <a id="dm-sheet-link" href="#" target="_blank" rel="noopener" title="Buka Spreadsheet di Tab Baru" aria-label="Buka Spreadsheet di Tab Baru" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-table mr-1"></i> Google Sheet
             </a>
-            <button type="button" onclick="navigateTo('data-murid')" class="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold border border-emerald-200">
+            <button type="button" onclick="navigateTo('data-murid')" title="Buka Halaman Data Murid" aria-label="Buka Halaman Data Murid" class="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold border border-emerald-200">
               <i class="fa-solid fa-user-graduate mr-1"></i> Data Murid
             </button>
-            <button type="button" onclick="navigateTo('kelola-soal')" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+            <button type="button" onclick="navigateTo('kelola-soal')" title="Buka Halaman Kelola Link Soal" aria-label="Buka Halaman Kelola Link Soal" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
               <i class="fa-solid fa-link mr-1"></i> Ke Kelola Link Soal
             </button>
           </div>
@@ -57,17 +57,17 @@
 
           <form onsubmit="submitAddMapel(event)" class="p-4 border-b border-slate-200 bg-slate-50/40 space-y-2.5">
             <div class="flex flex-col sm:flex-row gap-2">
-              <input id="add-mapel-no" type="text" placeholder="No (Otomatis)"
+              <input id="add-mapel-no" type="text" placeholder="No (Otomatis)" title="Nomor Urut Mata Pelajaran" aria-label="Nomor Urut Mata Pelajaran"
                 class="w-full sm:w-28 text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-brand-500">
-              <input id="add-mapel-nama" type="text" required placeholder="Nama Mata Pelajaran (misal: Matematika)"
+              <input id="add-mapel-nama" type="text" required placeholder="Nama Mata Pelajaran (misal: Matematika)" title="Nama Mata Pelajaran" aria-label="Nama Mata Pelajaran"
                 class="flex-1 text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
-              <button id="btn-add-mapel" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shrink-0">
+              <button id="btn-add-mapel" type="submit" title="Tambah Data Mata Pelajaran" aria-label="Tambah Data Mata Pelajaran" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shrink-0">
                 <i class="fa-solid fa-plus mr-1"></i> Tambah Mapel
               </button>
             </div>
             <div class="relative">
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-              <input id="search-mapel" type="text" oninput="renderMapelTable()" placeholder="Cari mata pelajaran..."
+              <input id="search-mapel" type="text" oninput="renderMapelTable()" placeholder="Cari mata pelajaran..." title="Cari Mata Pelajaran" aria-label="Cari Mata Pelajaran"
                 class="w-full text-xs pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg bg-white outline-none">
             </div>
           </form>
@@ -103,18 +103,18 @@
           <input id="edit-master-row-index" type="hidden">
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">No</label>
-            <input id="edit-master-no" type="text" placeholder="Nomor urut"
+            <input id="edit-master-no" type="text" placeholder="Nomor urut" title="Nomor Urut Mata Pelajaran" aria-label="Nomor Urut Mata Pelajaran"
               class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">Nama Mata Pelajaran</label>
-            <input id="edit-master-val" type="text" required placeholder="Masukkan nama mata pelajaran..."
+            <input id="edit-master-val" type="text" required placeholder="Masukkan nama mata pelajaran..." title="Nama Mata Pelajaran" aria-label="Nama Mata Pelajaran"
               class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
           </div>
         </div>
         <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-          <button type="button" onclick="closeEditMapelModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white">Batal</button>
-          <button id="btn-save-edit-master" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan Perubahan</button>
+          <button type="button" onclick="closeEditMapelModal()" title="Batal Edit Mapel" aria-label="Batal Edit Mapel" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white">Batal</button>
+          <button id="btn-save-edit-master" type="submit" title="Simpan Perubahan Mata Pelajaran" aria-label="Simpan Perubahan Mata Pelajaran" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan Perubahan</button>
         </div>
       </form>
     </div>

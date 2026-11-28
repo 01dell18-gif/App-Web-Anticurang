@@ -70,7 +70,7 @@
         <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 w-full">
           <div class="relative w-full sm:w-auto sm:min-w-[200px] sm:flex-1 lg:max-w-xs">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-            <input id="portal-search" type="text" oninput="renderPortalExams()" placeholder="Cari Mapel atau Kelas..."
+            <input id="portal-search" type="text" oninput="renderPortalExams()" placeholder="Cari Mapel atau Kelas..." title="Cari Berdasarkan Mapel atau Kelas" aria-label="Cari Berdasarkan Mapel atau Kelas"
               class="w-full text-xs sm:text-sm pl-8 pr-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none">
           </div>
 
@@ -80,12 +80,12 @@
 
           <!-- Filter Kelas: Bisa Ketik Pencarian & Bisa Klik Dropdown -->
           <div class="relative w-full sm:w-auto sm:min-w-[165px]" id="portal-kelas-combobox">
-            <input id="portal-kelas-filter" type="text" autocomplete="off"
+            <input id="portal-kelas-filter" type="text" autocomplete="off" title="Filter Berdasarkan Kelas" aria-label="Filter Berdasarkan Kelas"
               placeholder="-- Semua Kelas --"
               onfocus="openPortalClassDropdown()"
               oninput="handlePortalClassInput()"
               class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none">
-            <button type="button" tabindex="-1" onclick="togglePortalClassDropdown(event)"
+            <button type="button" tabindex="-1" onclick="togglePortalClassDropdown(event)" aria-label="Buka Pilihan Kelas"
               class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer" title="Buka Pilihan Kelas">
               <i id="portal-kelas-chevron" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
             </button>
@@ -94,10 +94,10 @@
           </div>
 
           <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar pb-0.5 sm:pb-0">
-            <button type="button" data-status="all" onclick="setPortalStatusFilter('all')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Semua</button>
-            <button type="button" data-status="active" onclick="setPortalStatusFilter('active')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-brand-600 text-white">Berlangsung</button>
-            <button type="button" data-status="upcoming" onclick="setPortalStatusFilter('upcoming')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Akan Datang</button>
-            <button type="button" data-status="ended" onclick="setPortalStatusFilter('ended')" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Selesai</button>
+            <button type="button" data-status="all" onclick="setPortalStatusFilter('all')" title="Tampilkan Semua Status Ujian" aria-label="Tampilkan Semua Status Ujian" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Semua</button>
+            <button type="button" data-status="active" onclick="setPortalStatusFilter('active')" title="Tampilkan Ujian yang Sedang Berlangsung" aria-label="Tampilkan Ujian yang Sedang Berlangsung" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-brand-600 text-white">Berlangsung</button>
+            <button type="button" data-status="upcoming" onclick="setPortalStatusFilter('upcoming')" title="Tampilkan Ujian yang Akan Datang" aria-label="Tampilkan Ujian yang Akan Datang" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Akan Datang</button>
+            <button type="button" data-status="ended" onclick="setPortalStatusFilter('ended')" title="Tampilkan Ujian yang Sudah Selesai" aria-label="Tampilkan Ujian yang Sudah Selesai" class="portal-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Selesai</button>
           </div>
         </div>
       </section>
@@ -154,7 +154,7 @@
             <select id="student-class-select" onchange="handlePortalClassSelect()" aria-label="Pilih Kelas Siswa" title="Pilih Kelas Siswa" class="hidden w-full text-sm px-3 py-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
               <option value="">-- Pilih Kelas --</option>
             </select>
-            <input id="student-class-input" type="text" required placeholder="Misal: XI DKV"
+            <input id="student-class-input" type="text" required placeholder="Misal: XI DKV" title="Kelas Siswa Peserta Ujian" aria-label="Kelas Siswa Peserta Ujian"
               class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
           </div>
 
@@ -165,14 +165,14 @@
                 <span id="student-name-auto-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Sesuai kelas</span>
               </div>
               <div class="relative">
-                <input id="student-name-input" list="student-name-list" type="text" required minlength="2"
+                <input id="student-name-input" list="student-name-list" type="text" required minlength="2" title="Nama Lengkap Siswa" aria-label="Nama Lengkap Siswa"
                   placeholder="Ketik atau pilih nama siswa..." autocomplete="off"
                   oninput="handlePortalStudentInput()"
                   onchange="handlePortalStudentInput()"
                   onclick="try { this.showPicker(); } catch(e) {}"
                   class="w-full text-sm px-3 py-2 pr-9 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none">
                 <datalist id="student-name-list"></datalist>
-                <button type="button" tabindex="-1" onclick="focusAndShowPicker('student-name-input')"
+                <button type="button" tabindex="-1" onclick="focusAndShowPicker('student-name-input')" aria-label="Buka Daftar Siswa"
                   class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600" title="Buka Daftar Siswa">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
@@ -184,7 +184,7 @@
                 <label class="block text-xs font-bold text-slate-600">NIS / No. Peserta</label>
                 <span id="student-nis-auto-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">Otomatis sesuai nama</span>
               </div>
-              <input id="student-nis-input" type="text" placeholder="Otomatis terisi..."
+              <input id="student-nis-input" type="text" placeholder="Otomatis terisi..." title="Nomor Induk Siswa atau Nomor Peserta" aria-label="Nomor Induk Siswa atau Nomor Peserta"
                 class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
             </div>
           </div>
@@ -201,14 +201,14 @@
           </div>
 
           <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
-            <input id="rules-agree-check" type="checkbox" required class="w-4 h-4 rounded text-brand-600">
+            <input id="rules-agree-check" type="checkbox" required title="Saya siap mengerjakan soal secara jujur dan mematuhi mode anticurang" aria-label="Saya siap mengerjakan soal secara jujur dan mematuhi mode anticurang" class="w-4 h-4 rounded text-brand-600">
             <span>Saya siap mengerjakan soal secara jujur dan mematuhi mode anticurang.</span>
           </label>
         </div>
 
         <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-          <button type="button" onclick="closeExamRulesModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100">Batal</button>
-          <button id="btn-launch-exam" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+          <button type="button" onclick="closeExamRulesModal()" title="Batal Membuka Ujian" aria-label="Batal Membuka Ujian" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100">Batal</button>
+          <button id="btn-launch-exam" type="submit" title="Buka Soal Ujian Mode Anticurang" aria-label="Buka Soal Ujian Mode Anticurang" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
             <i class="fa-solid fa-shield-halved mr-1"></i> Buka Soal Anticurang
           </button>
         </div>
@@ -239,7 +239,7 @@
           <button type="button" onclick="handleTopbarFullscreenClick()" title="Layar Penuh" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold border border-slate-700 inline-flex items-center gap-1 cursor-pointer">
             <i class="fa-solid fa-expand"></i> <span class="hidden sm:inline">Fullscreen</span>
           </button>
-          <button type="button" id="runner-finish-btn" onclick="openFinishExamConfirm()" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-xs font-bold text-white cursor-pointer whitespace-nowrap transition-all">
+          <button type="button" id="runner-finish-btn" onclick="openFinishExamConfirm()" title="Selesai Mengerjakan Ujian" aria-label="Selesai Mengerjakan Ujian" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-xs font-bold text-white cursor-pointer whitespace-nowrap transition-all">
             Selesai Ujian
           </button>
         </div>
@@ -301,7 +301,7 @@
           <div id="violation-log" class="my-4 text-left bg-slate-950/80 border border-slate-800 rounded-xl p-3 max-h-32 overflow-y-auto font-mono text-[11px] text-slate-300 space-y-1"></div>
 
           <div id="violation-actions-resume">
-            <button type="button" onclick="resumeFromViolation()" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 font-bold text-xs text-white">
+            <button type="button" onclick="resumeFromViolation()" title="Kembali ke Layar Penuh dan Lanjutkan Ujian" aria-label="Kembali ke Layar Penuh dan Lanjutkan Ujian" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 font-bold text-xs text-white">
               Kembali ke Layar Penuh & Lanjutkan
             </button>
           </div>
@@ -311,10 +311,10 @@
               Batas pelanggaran tercapai! Lembar soal dikunci. Minta pengawas memasukkan PIN untuk membuka kunci atau keluar sesi.
             </div>
             <div class="flex gap-2">
-              <input id="proctor-unlock-pin" type="password" onkeydown="if(event.key==='Enter'){event.preventDefault();unlockByProctor();}" placeholder="PIN Pengawas..." class="flex-1 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white outline-none">
-              <button type="button" onclick="unlockByProctor()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white cursor-pointer">Buka Kunci</button>
+              <input id="proctor-unlock-pin" type="password" onkeydown="if(event.key==='Enter'){event.preventDefault();unlockByProctor();}" placeholder="PIN Pengawas..." title="PIN Pengawas untuk Buka Kunci" aria-label="PIN Pengawas untuk Buka Kunci" class="flex-1 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white outline-none">
+              <button type="button" onclick="unlockByProctor()" title="Buka Kunci Layar Soal" aria-label="Buka Kunci Layar Soal" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white cursor-pointer">Buka Kunci</button>
             </div>
-            <button type="button" onclick="finishAndExitExam('Terkunci (Keluar)')" class="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">
+            <button type="button" onclick="finishAndExitExam('Terkunci (Keluar)')" title="Keluar ke Portal Utama" aria-label="Keluar ke Portal Utama" class="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">
               Keluar ke Portal Utama
             </button>
           </div>
@@ -634,15 +634,15 @@
 
       let actionBtn = '';
       if (!ex.hasLink) {
-        actionBtn = '<button type="button" disabled class="w-full py-2.5 px-4 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed">Link Soal Belum Diisi</button>';
+        actionBtn = '<button type="button" disabled title="Link Soal Belum Diisi" aria-label="Link Soal Belum Diisi" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed">Link Soal Belum Diisi</button>';
       } else if (ex.status === 'active') {
-        actionBtn = '<button type="button" onclick="prepareStartExam(' + ex.rowIndex + ')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs transition flex items-center justify-center gap-2"><i class="fa-solid fa-shield-halved"></i><span>Buka Link Soal (Anticurang)</span></button>';
+        actionBtn = '<button type="button" onclick="prepareStartExam(' + ex.rowIndex + ')" title="Buka Link Soal Mode Anticurang" aria-label="Buka Link Soal Mode Anticurang" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs transition flex items-center justify-center gap-2"><i class="fa-solid fa-shield-halved"></i><span>Buka Link Soal (Anticurang)</span></button>';
       } else if (ex.status === 'upcoming') {
         const attr = ex.startMs ? ' data-upcoming-start="' + ex.startMs + '"' : '';
         actionBtn = '<div class="text-center font-mono text-xs font-bold text-amber-700 bg-amber-50 rounded-lg py-1.5 mb-2"' + attr + '>Belum Dibuka</div>' +
-          '<button type="button" disabled class="w-full py-2 px-4 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed">Menunggu Jam Buka</button>';
+          '<button type="button" disabled title="Menunggu Jam Buka Soal" aria-label="Menunggu Jam Buka Soal" class="w-full py-2 px-4 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed">Menunggu Jam Buka</button>';
       } else {
-        actionBtn = '<button type="button" disabled class="w-full py-2.5 px-4 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed">Batas Buka Soal Berakhir</button>';
+        actionBtn = '<button type="button" disabled title="Batas Buka Soal Berakhir" aria-label="Batas Buka Soal Berakhir" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed">Batas Buka Soal Berakhir</button>';
       }
 
       return (

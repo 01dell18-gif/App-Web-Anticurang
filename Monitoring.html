@@ -20,7 +20,7 @@
         </div>
         <h3 class="text-lg font-extrabold text-slate-900">Akses Terbatas Guru / Admin</h3>
         <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk memantau siswa yang mengakses soal serta melihat pelanggaran anticurang.</p>
-        <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+        <button type="button" onclick="promptAdminLoginModal()" title="Masuk Sebagai Admin" aria-label="Masuk Sebagai Admin" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
           <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
         </button>
       </section>
@@ -33,13 +33,13 @@
             <span class="font-extrabold text-brand-800"><i class="fa-solid fa-link mr-1"></i> Pemisahan Link Aktif:</span>
             <span>PIN Pengawas Saat Ini:</span>
             <span id="mon-proctor-pin-badge" class="px-2.5 py-0.5 rounded-lg bg-amber-100 border border-amber-300 font-mono font-extrabold text-amber-900">123456</span>
-            <button type="button" onclick="copyText(document.getElementById('mon-proctor-pin-badge').textContent)" class="px-2 py-0.5 rounded bg-white border border-slate-300 text-[11px] font-bold hover:bg-slate-50">Salin PIN</button>
+            <button type="button" onclick="copyText(document.getElementById('mon-proctor-pin-badge').textContent)" title="Salin PIN Pengawas" aria-label="Salin PIN Pengawas" class="px-2 py-0.5 rounded bg-white border border-slate-300 text-[11px] font-bold hover:bg-slate-50">Salin PIN</button>
           </div>
           <div class="flex flex-wrap gap-2">
-            <button type="button" onclick="copyText(getAppUrl())" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-blue-200 font-bold text-brand-700">
+            <button type="button" onclick="copyText(getAppUrl())" title="Salin Link Web Publik Siswa" aria-label="Salin Link Web Publik Siswa" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-blue-200 font-bold text-brand-700">
               <i class="fa-regular fa-copy mr-1"></i> Salin Link Web Publik (Siswa)
             </button>
-            <button type="button" onclick="copyText(getAppUrl() + '?page=admin')" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 font-bold text-white">
+            <button type="button" onclick="copyText(getAppUrl() + '?page=admin')" title="Salin Link Dashboard Admin / Pengawas" aria-label="Salin Link Dashboard Admin / Pengawas" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 font-bold text-white">
               <i class="fa-regular fa-copy mr-1"></i> Salin Link Admin / Pengawas
             </button>
           </div>
@@ -72,11 +72,11 @@
         <!-- Toolbar Filter & Aksi SheetJS -->
         <div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
           <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 w-full">
-            <input id="mon-search" type="text" oninput="renderMonitoringTable()" placeholder="Cari Nama / NIS / Mapel..."
+            <input id="mon-search" type="text" oninput="renderMonitoringTable()" placeholder="Cari Nama / NIS / Mapel..." title="Cari Siswa Berdasarkan Nama, NIS, atau Mapel" aria-label="Cari Siswa Berdasarkan Nama, NIS, atau Mapel"
               class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none w-full sm:w-auto sm:min-w-[200px]">
 
             <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[165px]">
-              <input id="mon-mapel-filter" type="text" list="list-mon-mapel" autocomplete="off"
+              <input id="mon-mapel-filter" type="text" list="list-mon-mapel" autocomplete="off" title="Filter Berdasarkan Mapel" aria-label="Filter Berdasarkan Mapel"
                 placeholder="-- Semua Mapel --" onfocus="this.select()" oninput="renderMonitoringTable()"
                 class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none">
               <datalist id="list-mon-mapel"></datalist>
@@ -84,7 +84,7 @@
             </div>
 
             <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[155px]">
-              <input id="mon-kelas-filter" type="text" list="list-mon-kelas" autocomplete="off"
+              <input id="mon-kelas-filter" type="text" list="list-mon-kelas" autocomplete="off" title="Filter Berdasarkan Kelas" aria-label="Filter Berdasarkan Kelas"
                 placeholder="-- Semua Kelas --" onfocus="this.select()" oninput="renderMonitoringTable()"
                 class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none">
               <datalist id="list-mon-kelas"></datalist>
@@ -102,16 +102,16 @@
 
           <div class="flex flex-wrap items-center gap-2">
             <label class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
-              <input id="mon-auto-refresh" type="checkbox" checked onchange="toggleMonitoringAutoRefresh()" class="rounded text-brand-600">
+              <input id="mon-auto-refresh" type="checkbox" checked onchange="toggleMonitoringAutoRefresh()" title="Aktifkan Auto-Refresh 15 Detik" aria-label="Aktifkan Auto-Refresh 15 Detik" class="rounded text-brand-600">
               <span>Auto-Refresh 15d</span>
             </label>
-            <button type="button" onclick="exportMonitoringExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+            <button type="button" onclick="exportMonitoringExcel()" title="Ekspor Data Monitoring ke Excel" aria-label="Ekspor Data Monitoring ke Excel" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
               <i class="fa-solid fa-file-excel mr-1"></i> Ekspor .xls
             </button>
-            <button type="button" onclick="navigateTo('laporan')" class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">
+            <button type="button" onclick="navigateTo('laporan')" title="Buka Halaman Laporan & Cetak PDF" aria-label="Buka Halaman Laporan & Cetak PDF" class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">
               <i class="fa-solid fa-print mr-1"></i> Cetak PDF
             </button>
-            <button id="btn-mon-clear-all" type="button" onclick="confirmClearMonitoring(null)" class="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold">
+            <button id="btn-mon-clear-all" type="button" onclick="confirmClearMonitoring(null)" title="Bersihkan Seluruh Riwayat Log Monitoring" aria-label="Bersihkan Seluruh Riwayat Log Monitoring" class="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold">
               <i class="fa-solid fa-trash-can mr-1"></i> Bersihkan Log
             </button>
           </div>

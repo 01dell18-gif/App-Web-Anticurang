@@ -20,7 +20,7 @@
         </div>
         <h3 class="text-lg font-extrabold text-slate-900">Pengaturan Sistem (Khusus Admin)</h3>
         <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk mengubah Identitas Sekolah, Logo, Kop, Folder Drive, atau batas pelanggaran.</p>
-        <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+        <button type="button" onclick="promptAdminLoginModal()" title="Masuk Sebagai Admin" aria-label="Masuk Sebagai Admin" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
           <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
         </button>
       </section>
@@ -43,9 +43,9 @@
               <div class="flex items-center justify-between gap-2 flex-wrap">
                 <label class="text-xs font-bold text-slate-700">Logo Web</label>
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="setLogoMode('url')" id="btn-logo-mode-url" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white">Mode URL</button>
-                  <button type="button" onclick="setLogoMode('file')" id="btn-logo-mode-file" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Unggah Gambar</button>
-                  <button type="button" onclick="resetSingleDefault('logo')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Default</button>
+                  <button type="button" onclick="setLogoMode('url')" id="btn-logo-mode-url" title="Pilih Logo dari URL Gambar" aria-label="Pilih Logo dari URL Gambar" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white">Mode URL</button>
+                  <button type="button" onclick="setLogoMode('file')" id="btn-logo-mode-file" title="Unggah Berkas Gambar Logo" aria-label="Unggah Berkas Gambar Logo" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Unggah Gambar</button>
+                  <button type="button" onclick="resetSingleDefault('logo')" title="Reset Logo ke Default" aria-label="Reset Logo ke Default" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Default</button>
                 </div>
               </div>
               <div id="logo-mode-url-box">
@@ -64,13 +64,13 @@
               <div class="flex items-center justify-between gap-2 flex-wrap">
                 <label class="text-xs font-bold text-slate-700">Kop Web / Kop Laporan</label>
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="setKopMode('url')" id="btn-kop-mode-url" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white">Mode URL / Teks</button>
-                  <button type="button" onclick="setKopMode('file')" id="btn-kop-mode-file" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Unggah Gambar</button>
-                  <button type="button" onclick="resetSingleDefault('kop')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Default</button>
+                  <button type="button" onclick="setKopMode('url')" id="btn-kop-mode-url" title="Pilih Kop Surat dari URL atau Teks" aria-label="Pilih Kop Surat dari URL atau Teks" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-600 text-white">Mode URL / Teks</button>
+                  <button type="button" onclick="setKopMode('file')" id="btn-kop-mode-file" title="Unggah Gambar Kop Surat" aria-label="Unggah Gambar Kop Surat" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Unggah Gambar</button>
+                  <button type="button" onclick="resetSingleDefault('kop')" title="Reset Kop Surat ke Default" aria-label="Reset Kop Surat ke Default" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-300 text-slate-600">Default</button>
                 </div>
               </div>
               <div id="kop-mode-url-box">
-                <textarea id="set-kop-url" rows="2" oninput="updatePreviews()" placeholder="Masukkan URL gambar Drive / PNG atau teks Kop instansi..."
+                <textarea id="set-kop-url" rows="2" oninput="updatePreviews()" placeholder="Masukkan URL gambar Drive / PNG atau teks Kop instansi..." title="URL Gambar atau Teks Kop Surat" aria-label="URL Gambar atau Teks Kop Surat"
                   class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none"></textarea>
               </div>
               <div id="kop-mode-file-box" class="hidden">
@@ -84,12 +84,12 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">Folder ID Google Drive (Opsional)</label>
-                <input id="set-folder-drive" type="text" placeholder="ID / URL Folder Drive untuk unggahan"
+                <input id="set-folder-drive" type="text" placeholder="ID / URL Folder Drive untuk unggahan" title="ID atau URL Folder Google Drive" aria-label="ID atau URL Folder Google Drive"
                   class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl outline-none">
               </div>
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">Sumber Data Cetak Laporan</label>
-                <input id="set-sumber-data" type="text" placeholder="Database Ujian & Pengawasan"
+                <input id="set-sumber-data" type="text" placeholder="Database Ujian & Pengawasan" title="Sumber Data Cetak Laporan" aria-label="Sumber Data Cetak Laporan"
                   class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl outline-none">
               </div>
             </div>
@@ -110,16 +110,16 @@
               </div>
 
               <label class="flex items-center gap-2.5 text-xs font-semibold text-slate-700 cursor-pointer p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <input id="set-require-fullscreen" type="checkbox" checked class="w-4 h-4 rounded text-brand-600">
+                <input id="set-require-fullscreen" type="checkbox" checked title="Wajibkan Mode Layar Penuh" aria-label="Wajibkan Mode Layar Penuh" class="w-4 h-4 rounded text-brand-600">
                 <span>Wajibkan Mode Layar Penuh (Fullscreen) saat siswa membuka soal</span>
               </label>
 
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">PIN Login &amp; Buka Kunci Pengawas</label>
                 <div class="flex gap-2">
-                  <input id="set-pin-pengawas" type="text" required minlength="4" placeholder="PIN untuk pengawas ruang..."
+                  <input id="set-pin-pengawas" type="text" required minlength="4" placeholder="PIN untuk pengawas ruang..." title="PIN Login Pengawas" aria-label="PIN Login Pengawas"
                     class="flex-1 text-sm font-mono font-bold px-3 py-2 border border-slate-300 rounded-xl outline-none">
-                  <button type="button" onclick="generateRandomProctorPin()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200">Acak PIN</button>
+                  <button type="button" onclick="generateRandomProctorPin()" title="Acak PIN Pengawas Baru" aria-label="Acak PIN Pengawas Baru" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200">Acak PIN</button>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-1">Dipakai untuk login Pengawas di Dashboard Monitoring serta membuka kunci layar ujian siswa.</p>
               </div>
@@ -127,9 +127,9 @@
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">PIN Login Admin</label>
                 <div class="flex gap-2">
-                  <input id="set-pin-admin" type="password" required minlength="4" placeholder="PIN Login Admin..."
+                  <input id="set-pin-admin" type="password" required minlength="4" placeholder="PIN Login Admin..." title="PIN Login Administrator" aria-label="PIN Login Administrator"
                     class="flex-1 text-sm font-mono font-bold px-3 py-2 border border-slate-300 rounded-xl outline-none">
-                  <button type="button" onclick="toggleAdminPinVisibility()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200" title="Tampilkan / Sembunyikan PIN">
+                  <button type="button" onclick="toggleAdminPinVisibility()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200" title="Tampilkan / Sembunyikan PIN" aria-label="Tampilkan atau Sembunyikan PIN">
                     <i id="icon-eye-admin-pin" class="fa-regular fa-eye"></i>
                   </button>
                 </div>
@@ -138,10 +138,10 @@
             </div>
 
             <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 flex-wrap">
-              <button type="button" onclick="resetAllDefaults()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50">
+              <button type="button" onclick="resetAllDefaults()" title="Reset Semua Pengaturan URL ke Bawaan" aria-label="Reset Semua Pengaturan URL ke Bawaan" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50">
                 Reset Default URL
               </button>
-              <button id="btn-save-settings" type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+              <button id="btn-save-settings" type="submit" title="Simpan Semua Pengaturan" aria-label="Simpan Semua Pengaturan" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
                 <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Pengaturan
               </button>
             </div>
@@ -156,7 +156,7 @@
                 </h3>
                 <p class="text-[11px] text-slate-500 mt-0.5">Ubah Spreadsheet database atau link deploy cadangan langsung dari sini tanpa perlu mengedit kode.</p>
               </div>
-              <button id="btn-init-db" type="button" onclick="initDatabaseStructureNow()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs">
+              <button id="btn-init-db" type="button" onclick="initDatabaseStructureNow()" title="Siapkan Struktur Tabel Database di Spreadsheet" aria-label="Siapkan Struktur Tabel Database di Spreadsheet" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs">
                 <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Siapkan Struktur Database
               </button>
             </div>
@@ -170,7 +170,7 @@
                 <div id="conn-active-db-id" class="font-mono text-[11px] bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-600 truncate">-</div>
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Ganti Link / ID Spreadsheet Baru (Opsional)</label>
-                  <input id="set-custom-spreadsheet" type="text" placeholder="Tempel URL Google Sheet atau ID baru (kosong = otomatis/bawaan)"
+                  <input id="set-custom-spreadsheet" type="text" placeholder="Tempel URL Google Sheet atau ID baru (kosong = otomatis/bawaan)" title="Link atau ID Spreadsheet Database Baru" aria-label="Link atau ID Spreadsheet Database Baru"
                     class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
                   <p class="text-[11px] text-slate-500 mt-1">Jika Anda menduplikasi Spreadsheet, database otomatis mengikuti Spreadsheet hasil duplikasi tanpa mengisi kolom ini.</p>
                 </div>
@@ -179,12 +179,12 @@
               <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                 <div class="flex items-center justify-between gap-2">
                   <span class="text-xs font-bold text-slate-700">Link Deploy Web App Aktif</span>
-                  <button type="button" onclick="copyActiveDeployUrl()" class="text-[11px] font-bold text-brand-600 hover:underline">Salin Link</button>
+                  <button type="button" onclick="copyActiveDeployUrl()" title="Salin Link Deploy Aktif ke Clipboard" aria-label="Salin Link Deploy Aktif ke Clipboard" class="text-[11px] font-bold text-brand-600 hover:underline">Salin Link</button>
                 </div>
                 <div id="conn-active-deploy-url" class="font-mono text-[11px] bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-600 truncate">-</div>
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Link Deploy Web App Cadangan (Opsional)</label>
-                  <input id="set-custom-deploy-url" type="text" placeholder="Kosong = deteksi otomatis URL deploy yang sedang aktif"
+                  <input id="set-custom-deploy-url" type="text" placeholder="Kosong = deteksi otomatis URL deploy yang sedang aktif" title="Link Deploy Web App Cadangan" aria-label="Link Deploy Web App Cadangan"
                     class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
                   <p class="text-[11px] text-slate-500 mt-1">Aplikasi otomatis memakai URL deploy aktif saat ini; isi hanya jika ingin mengarahkan tombol navigasi ke link deploy tertentu.</p>
                 </div>

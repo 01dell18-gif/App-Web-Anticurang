@@ -20,7 +20,7 @@
         </div>
         <h3 class="text-lg font-extrabold text-slate-900">Akses Manajemen Link Soal</h3>
         <p class="text-xs text-slate-500 mt-1 mb-5">Masuk dengan PIN Admin untuk menambah, mengubah, mengimpor Excel, atau menguji link Google Form.</p>
-        <button type="button" onclick="promptAdminLoginModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+        <button type="button" onclick="promptAdminLoginModal()" title="Masuk Sebagai Admin" aria-label="Masuk Sebagai Admin" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
           <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk Sebagai Admin
         </button>
       </section>
@@ -29,11 +29,11 @@
         <!-- Toolbar -->
         <div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
           <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 w-full">
-            <input id="ks-search" type="text" oninput="renderExamsTable()" placeholder="Cari Mapel / Kelas / Link..."
+            <input id="ks-search" type="text" oninput="renderExamsTable()" placeholder="Cari Mapel / Kelas / Link..." title="Cari Mapel, Kelas, atau Link Soal" aria-label="Cari Mapel, Kelas, atau Link Soal"
               class="text-xs sm:text-sm px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white outline-none w-full sm:w-auto sm:min-w-[200px]">
 
             <div class="datalist-input-wrapper w-full sm:w-auto sm:min-w-[165px]">
-              <input id="ks-kelas-filter" type="text" list="list-ks-kelas" autocomplete="off"
+              <input id="ks-kelas-filter" type="text" list="list-ks-kelas" autocomplete="off" title="Filter Berdasarkan Kelas" aria-label="Filter Berdasarkan Kelas"
                 placeholder="-- Semua Kelas --" onfocus="this.select()" oninput="renderExamsTable()"
                 class="w-full text-xs sm:text-sm py-2 pl-3 pr-8 border border-slate-200 rounded-xl bg-slate-50 outline-none">
               <datalist id="list-ks-kelas"></datalist>
@@ -43,22 +43,22 @@
 
           <div class="flex flex-wrap items-center gap-2">
             <input id="excel-import-input" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImportFile(event)" title="Unggah Berkas Excel Soal" aria-label="Unggah Berkas Excel Soal">
-            <button type="button" onclick="document.getElementById('excel-import-input').click()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+            <button type="button" onclick="document.getElementById('excel-import-input').click()" title="Impor Data Soal dari Berkas Excel" aria-label="Impor Data Soal dari Berkas Excel" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-file-import mr-1"></i> Impor Excel
             </button>
-            <button type="button" onclick="exportExamsExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+            <button type="button" onclick="exportExamsExcel()" title="Ekspor Data Soal ke Berkas Excel" aria-label="Ekspor Data Soal ke Berkas Excel" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
               <i class="fa-solid fa-file-excel mr-1"></i> Ekspor .xls
             </button>
-            <a id="ks-sheet-link" href="#" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+            <a id="ks-sheet-link" href="#" target="_blank" rel="noopener" title="Buka Spreadsheet di Tab Baru" aria-label="Buka Spreadsheet di Tab Baru" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-table mr-1"></i> Google Sheet
             </a>
-            <button type="button" onclick="navigateTo('data-mapel')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+            <button type="button" onclick="navigateTo('data-mapel')" title="Buka Halaman Data Mapel" aria-label="Buka Halaman Data Mapel" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-book-open mr-1"></i> Data Mapel
             </button>
-            <button type="button" onclick="navigateTo('data-murid')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
+            <button type="button" onclick="navigateTo('data-murid')" title="Buka Halaman Data Murid" aria-label="Buka Halaman Data Murid" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200">
               <i class="fa-solid fa-user-graduate mr-1"></i> Data Murid
             </button>
-            <button type="button" onclick="openExamFormModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
+            <button type="button" onclick="openExamFormModal()" title="Tambah Link Form Ujian Baru" aria-label="Tambah Link Form Ujian Baru" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs">
               <i class="fa-solid fa-plus mr-1"></i> Tambah Link Form
             </button>
           </div>
@@ -104,19 +104,19 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">No (Otomatis)</label>
-              <input id="exam-no" type="text" placeholder="Otomatis" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500 font-semibold text-slate-800">
+              <input id="exam-no" type="text" placeholder="Otomatis" title="Nomor Urut Soal" aria-label="Nomor Urut Soal" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-brand-500 font-semibold text-slate-800">
             </div>
             <div>
               <div class="flex items-center justify-between gap-2 mb-1">
                 <label class="block text-xs font-bold text-slate-600">Kelas <span class="text-red-600">*</span></label>
-                <button type="button" onclick="navigateTo('data-murid')" class="text-[11px] font-bold text-brand-600 hover:underline">+ Data Murid</button>
+                <button type="button" onclick="navigateTo('data-murid')" title="Buka Halaman Data Murid" aria-label="Buka Halaman Data Murid" class="text-[11px] font-bold text-brand-600 hover:underline">+ Data Murid</button>
               </div>
               <div class="relative">
-                <input id="exam-kelas" list="exam-kelas-list" required placeholder="Pilih atau ketik kelas..." autocomplete="off"
+                <input id="exam-kelas" list="exam-kelas-list" required placeholder="Pilih atau ketik kelas..." autocomplete="off" title="Pilih atau Ketik Kelas" aria-label="Pilih atau Ketik Kelas"
                   onclick="try { this.showPicker(); } catch(e) {}"
                   class="w-full text-sm px-3 py-2 pr-9 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
                 <datalist id="exam-kelas-list"></datalist>
-                <button type="button" tabindex="-1" onclick="focusAndShowPicker('exam-kelas')"
+                <button type="button" tabindex="-1" onclick="focusAndShowPicker('exam-kelas')" aria-label="Buka Pilihan Kelas"
                   class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600" title="Buka Pilihan Kelas">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
@@ -127,14 +127,14 @@
           <div>
             <div class="flex items-center justify-between gap-2 mb-1">
               <label class="block text-xs font-bold text-slate-600">Mata Pelajaran (Mapel) <span class="text-red-600">*</span></label>
-              <button type="button" onclick="navigateTo('data-mapel')" class="text-[11px] font-bold text-brand-600 hover:underline">+ Kelola Mapel</button>
+              <button type="button" onclick="navigateTo('data-mapel')" title="Buka Halaman Data Mapel" aria-label="Buka Halaman Data Mapel" class="text-[11px] font-bold text-brand-600 hover:underline">+ Kelola Mapel</button>
             </div>
             <div class="relative">
-              <input id="exam-mapel" list="exam-mapel-list" required placeholder="Pilih atau ketik mata pelajaran..." autocomplete="off"
+              <input id="exam-mapel" list="exam-mapel-list" required placeholder="Pilih atau ketik mata pelajaran..." autocomplete="off" title="Pilih atau Ketik Mata Pelajaran" aria-label="Pilih atau Ketik Mata Pelajaran"
                 onclick="try { this.showPicker(); } catch(e) {}"
                 class="w-full text-sm px-3 py-2 pr-9 border border-slate-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-500">
               <datalist id="exam-mapel-list"></datalist>
-              <button type="button" tabindex="-1" onclick="focusAndShowPicker('exam-mapel')"
+              <button type="button" tabindex="-1" onclick="focusAndShowPicker('exam-mapel')" aria-label="Buka Pilihan Mapel"
                 class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600" title="Buka Pilihan Mapel">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               </button>
@@ -144,9 +144,9 @@
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">Link Google Form (Link GFrom) <span class="text-red-600">*</span></label>
             <div class="flex gap-2">
-              <input id="exam-link" type="text" required oninput="checkExamLinkHint()" placeholder="https://docs.google.com/forms/d/e/.../viewform"
+              <input id="exam-link" type="text" required oninput="checkExamLinkHint()" placeholder="https://docs.google.com/forms/d/e/.../viewform" title="Link Google Form Soal" aria-label="Link Google Form Soal"
                 class="flex-1 text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
-              <button type="button" onclick="previewLinkFromModal()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200">Uji Form</button>
+              <button type="button" onclick="previewLinkFromModal()" title="Uji Tampilan Link Google Form" aria-label="Uji Tampilan Link Google Form" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200">Uji Form</button>
             </div>
             <div id="exam-link-hint" class="text-[11px] text-slate-500 mt-1">Gunakan URL responden Google Form (<code>viewform</code> atau <code>forms.gle</code>).</div>
           </div>
@@ -158,7 +158,7 @@
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Durasi Soal (Menit)</label>
-              <input id="exam-durasi" type="number" min="0" max="1440" placeholder="Misal: 30 (kosong = fleksibel)" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
+              <input id="exam-durasi" type="number" min="0" max="1440" placeholder="Misal: 30 (kosong = fleksibel)" title="Durasi Pengerjaan Soal (Menit)" aria-label="Durasi Pengerjaan Soal (Menit)" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-xl outline-none">
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Waktu Mulai (Jam Buka)</label>
@@ -172,8 +172,8 @@
           <p class="text-[11px] text-slate-500">Waktu Mulai & Selesai menentukan kapan soal dapat dibuka dan terakhir dibuka. Durasi pengerjaan berjalan penuh sejak siswa membuka soal meski melewati Waktu Selesai; kosongkan jika fleksibel.</p>
         </div>
         <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-          <button type="button" onclick="closeExamFormModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white">Batal</button>
-          <button id="btn-save-exam" type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan Data Soal</button>
+          <button type="button" onclick="closeExamFormModal()" title="Batal Simpan Soal" aria-label="Batal Simpan Soal" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white">Batal</button>
+          <button id="btn-save-exam" type="submit" title="Simpan Data Soal" aria-label="Simpan Data Soal" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Simpan Data Soal</button>
         </div>
       </form>
     </div>
